@@ -52,10 +52,9 @@
   select.seg{padding-right:1.4rem}
 
   /* ---- foundation bar ---- */
-  .foundation{display:flex; flex-wrap:wrap; gap:1rem 1.6rem; align-items:flex-end}
-  .foundation .lbl-strong{font-size:.7rem;font-weight:800;color:var(--text);letter-spacing:.04em}
-  .foundation .fnote{flex-basis:100%; font-size:.76rem; color:var(--faint); margin-top:.1rem}
+  .foundation{display:flex; flex-wrap:wrap; gap:.8rem 1.6rem; align-items:flex-end; padding-bottom:1rem; margin-bottom:1.1rem; border-bottom:1px solid var(--border)}
   #subLink{margin-left:auto}
+  .linkchip{font-size:.68rem;font-weight:700;color:var(--both);background:rgba(67,196,106,.13);border-radius:6px;padding:.12rem .45rem;align-self:center}
 
   /* ---- hero result (sticky) ---- */
   .hero{margin-top:1rem}
@@ -83,7 +82,8 @@
   .bk .lbl{position:absolute; bottom:4px; left:0; right:0; text-align:center; font-size:.52rem; font-weight:700; color:#c9cdd6}
   .bk.low .lbl,.bk.up .lbl,.bk.both .lbl{color:#0f1115}
 
-  .analysis{margin-top:1.1rem; display:flex; flex-direction:column; gap:.55rem}
+  .analysis{margin-top:1rem; display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1.4rem; align-items:start}
+  @media(max-width:560px){ .analysis{grid-template-columns:1fr} }
   .arow{display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap}
   .arow .k{font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); width:4.6rem; flex:none}
   .pills{display:flex; flex-wrap:wrap; gap:.3rem}
@@ -182,18 +182,14 @@
   <p class="lead">トライアド2つの「スラッシュ／ポリコード」から拡張和音の<b style="color:var(--text)">色</b>を探すツール。実際の構成音と度数を常に計算して表示します。曲の<b style="color:var(--text)">土台（キー）</b>はサブベースツールで決め、ここでは色・配置を詰める想定です。</p>
 </header>
 
-<!-- ===== FOUNDATION (key from the sub-bass tool) ===== -->
-<div class="card">
-  <div class="foundation">
-    <div class="cgroup"><span class="lbl-strong">曲の土台 — キー</span><div class="segs"><select id="keyTonic" class="seg"></select></div></div>
-    <div class="cgroup"><span class="clabel">スケール</span><div class="segs"><select id="keyScale" class="seg"></select></div></div>
-    <a id="subLink" class="btn ghost" target="_blank" rel="noopener" style="display:none"></a>
-    <p class="fnote">土台（キー）はサブベースツールで決めるのがおすすめ。キーを選ぶと、下の「キーで探す」にそのキーで使える色が並びます。</p>
-  </div>
-</div>
-
-<!-- ===== HERO: current voicing ===== -->
+<!-- ===== HERO: foundation (key) + current voicing ===== -->
 <div class="card hero">
+  <div class="foundation">
+    <div class="cgroup"><span class="clabel">曲の土台 — キー</span><div class="segs"><select id="keyTonic" class="seg"></select></div></div>
+    <div class="cgroup"><span class="clabel">スケール</span><div class="segs"><select id="keyScale" class="seg"></select></div></div>
+    <span class="linkchip" id="linkChip" hidden>🔗 サブベース連動</span>
+    <a id="subLink" class="btn ghost" target="_blank" rel="noopener" style="display:none"></a>
+  </div>
   <div class="result">
     <div class="slash" id="slash"></div>
     <div class="rmeta">
@@ -210,7 +206,6 @@
   </div>
 
   <div class="caveat" id="caveat"></div>
-  <div class="orch-hint" id="orchHint"></div>
 
   <div class="herobar">
     <div class="cgroup"><span class="clabel">ルート (X)</span><div class="segs"><select id="root" class="seg"></select></div></div>
@@ -410,20 +405,20 @@ const DATA={
  'maj|M7|min':{sym:'maj9(#11)',mode:'Lydian'},
  'min|M2|maj':{sym:'m6/9(#11)',mode:'Dorian/Lydian-m',note:'#11はリディアン色。♭7は無い（m6/9系）'},
  'min|M2|min':{sym:'m6/9(add11)',mode:'Dorian',note:'ドリアンの積み。♭7は無い（m6/9系）'},
- 'min|M3|maj':{sym:'バイトーナル（♭3/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3、5と#5が半音でぶつかるバイトーナルなクラスター。上△の色を狙うなら下は省略気味に'},
- 'min|M3|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,note:'上のm△が♮3を持ち込み♭3と半音衝突するバイトーナル'},
+ 'min|M3|maj':{sym:'バイトーナル（♭3/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3、5と#5が半音で重なる（バイトーナル）'},
+ 'min|M3|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3が半音で重なる（バイトーナル）'},
  'min|P4|maj':{sym:'m6(add11)',mode:'Dorian'},
  'min|P4|min':{sym:'m(add11,♭13)',mode:'Aeolian',note:'エオリアン色（♭13）。♭7は無い'},
  'min|P5|maj':{sym:'m9(maj7)',mode:'Melodic-m'},
  'min|P5|min':{sym:'m9',mode:'Dorian/Aeolian'},
- 'min|M6|maj':{sym:'バイトーナル（♭9/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭9と♮3が混入し♭3と衝突するバイトーナル'},
- 'min|M6|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,note:'上のm△の♮3が♭3と半音衝突（♮13＝ドリアン色を狙うなら下の♭3を省く）'},
+ 'min|M6|maj':{sym:'バイトーナル（♭9/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭9・♮3が混じり♭3と半音で重なる（バイトーナル）'},
+ 'min|M6|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3が半音で重なる（バイトーナル）'},
  'min|m7|maj':{sym:'m11',mode:'Dorian/Aeolian'},
  'min|m7|min':{sym:'m7(♭9,11)',mode:'Phrygian'},
  'min|M7|maj':{sym:'m(maj7,#11)',mode:'Melodic-m'},
  'min|M7|min':{sym:'m9(maj7,#11)',mode:'Melodic-m'},
 };
-const LOCRIAN={sym:'dim(♭9,11,♭13)',mode:'Locrian',warn:1,note:'maj3も♭7も無いので属7ではない。ロクリアン的な dim/ø 系クラスター'};
+const LOCRIAN={sym:'dim(♭9,11,♭13)',mode:'Locrian',warn:1,note:'maj3も♭7も無い（dim/ø 系）'};
 
 /* ---------- reverse index ---------- */
 const REV_DEGS=['♭9','9','#9','11','#11','♭5','#5','♭13','13','♭7','maj7'];
@@ -512,21 +507,13 @@ function render(){
 
   drawKeyboard(root, lower, upTriad);
 
-  // caveat
+  // caveat — facts only (structural). No sound/placement prose; the user judges those.
   const cav=$('caveat');
   if(single){
-    const ref = entry&&!entry.raw ? `${root.name}${entry.sym}` : 'フルの和音';
-    cav.className='caveat'; cav.innerHTML=`<span class="ic">🎚️</span><span>単音ベース：下の 3rd・5th を省いた開いた声部（${ref} のクリーン版）。低域が濁らずサブ向き。3rd/7th は他パートで補完。</span>`;
-  } else if(entry&&(entry.note||entry.warn)){
-    cav.className='caveat'+(entry.warn?' warn':''); cav.innerHTML=`<span class="ic">${entry.warn?'⚠️':'ℹ️'}</span><span>${entry.note||'バイトーナルな衝突を含みます。'}</span>`;
-  } else { cav.className='caveat'; cav.innerHTML=`<span class="ic">✓</span><span>構成音と表記が一致するクリーンな解釈です。</span>`; }
-
-  // orchestration hint
-  const upNames=upTriad.map(n=>n.name).join('–');
-  const fifth=fullLower[2]?fullLower[2].name:'';
-  $('orchHint').innerHTML = single
-    ? `<b>配置:</b> 低域 ${root.name}（単音）／ 高域 ${upNames}（上部トライアド）。`
-    : `<b>配置:</b> 低域 ${root.name}＋${fifth}（土台）／ 中域 機能音(3rd・7th)／ 高域 ${upNames}（上部トライアド＝色）。`;
+    cav.style.display=''; cav.className='caveat'; cav.innerHTML=`<span class="ic">🎚️</span><span>単音ベース：下の 3rd・5th を省いた開いた声部。</span>`;
+  } else if(entry&&entry.warn){
+    cav.style.display=''; cav.className='caveat warn'; cav.innerHTML=`<span class="ic">⚠️</span><span>${entry.note||'バイトーナル'}</span>`;
+  } else { cav.style.display='none'; cav.innerHTML=''; }
 
   saveURL();
 }
@@ -586,7 +573,7 @@ function renderRecipes(list, boxId){
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
       `<span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:root.name+x.e.sym}</span>`+
       `<span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${x.degs.join(' ')}</span>`;
-    c.addEventListener('click',()=>{ loadVoicing(root.name,x.low,x.iv,x.upq); window.scrollTo({top:0,behavior:'smooth'}); });
+    c.addEventListener('click',()=>{ loadVoicing(root.name,x.low,x.iv,x.upq); });
     box.appendChild(c);
   });
 }
@@ -623,7 +610,7 @@ function buildModeBody(){ const root=curRoot(), box=$('modeBody'), md=MODES[mode
     const c=document.createElement('div'); c.className='combo'; c.style.marginBottom='.5rem';
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
       `<span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span><span class="cnote">${e.warn?'⚠ ':''}${e.mode}</span>`;
-    c.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); window.scrollTo({top:0,behavior:'smooth'}); }); box.appendChild(c); });
+    c.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); }); box.appendChild(c); });
 }
 
 /* ---------- list tab ---------- */
@@ -642,7 +629,7 @@ function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
   const degs=uniq.map(n=>degree(root,n)).join(' ');
   const tr=document.createElement('tr');
   tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td><td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span></td><td class="degs">${degs}</td><td class="md${e.warn?' warn':''}">${e.warn?'⚠ ':''}${e.mode}</td>`;
-  tr.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); window.scrollTo({top:0,behavior:'smooth'}); });
+  tr.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); });
   tb.appendChild(tr);
 }
 
@@ -657,7 +644,7 @@ const ROMAN=['I','II','III','IV','V','VI','VII'];
   ks.addEventListener('change',()=>{ st.keyScale=ks.value; relabelKeyTonic(); onKeyChange(); });
 })();
 function relabelKeyTonic(){ const kt=$('keyTonic'), sc=st.keyScale||'major'; for(const o of kt.options){ if(o.value!=='') o.textContent=tonicSpelling(+o.value, sc); } }
-function onKeyChange(){ renderKeyView(); render(); if(st.tab!=='key') {} saveURL(); }
+function onKeyChange(){ setLinked(false); renderKeyView(); render(); saveURL(); }
 function renderKeyView(){
   const box=$('keyResults'), link=$('subLink');
   if(keyActive()){
@@ -676,7 +663,7 @@ function renderKeyView(){
       html+=`<button class="key-chip${x.e.warn?' warn':''}" data-root="${dn.name}" data-low="${x.low}" data-iv="${x.iv}" data-upq="${x.upq}">`+
         `<span class="kc-slash"><span class="u">${up[0].name}${upQ}</span>/<span class="l">${lowName}</span></span><span class="kc-sym">${sym}</span></button>`; });
     html+='</div>'; grp.innerHTML=html; box.appendChild(grp); });
-  box.querySelectorAll('.key-chip').forEach(b=> b.addEventListener('click',()=>{ loadVoicing(b.dataset.root,b.dataset.low,b.dataset.iv,b.dataset.upq); window.scrollTo({top:0,behavior:'smooth'}); }));
+  box.querySelectorAll('.key-chip').forEach(b=> b.addEventListener('click',()=>{ loadVoicing(b.dataset.root,b.dataset.low,b.dataset.iv,b.dataset.upq); }));
 }
 
 /* ---------- tabs ---------- */
@@ -691,6 +678,22 @@ function refreshTab(){ const t=st.tab;
 }
 $('tabbar').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=> setTab(b.dataset.v)));
 
+/* ---------- sub-bass linkage (same-origin localStorage) ---------- */
+// The sub-bass tool writes localStorage "subbass-key" = "<pc>|<scaleIdx>" on every
+// key change. We read it on load and follow it live via storage events.
+const SUBBASS_SCALES=['major','minor','hminor','mminor','dorian','phrygian','lydian','mixolydian','locrian'];
+let subbassLinked=false;
+function readSubbassKey(){ try{ const v=localStorage.getItem('subbass-key'); if(!v) return null;
+  const [p,s]=v.split('|'); if(p==='' || p==null) return null; const sc=SUBBASS_SCALES[+s]; if(!sc) return null; return {pc:+p, scale:sc};
+}catch(e){ return null; } }
+function setLinked(on){ subbassLinked=on; const c=$('linkChip'); if(c) c.hidden=!on; }
+function applySubbass(k){
+  if(k){ st.keyPc=k.pc; st.keyScale=k.scale; setLinked(true); } else { st.keyPc=null; st.keyScale=''; setLinked(false); }
+  $('keyTonic').value = st.keyPc==null?'':String(st.keyPc); $('keyScale').value=st.keyScale||''; relabelKeyTonic();
+  renderKeyView(); render(); refreshTab();
+}
+window.addEventListener('storage', e=>{ if(e.key==='subbass-key') applySubbass(readSubbassKey()); });
+
 /* ---------- URL ---------- */
 function saveURL(){ const p=new URLSearchParams();
   p.set('x',st.rootName); p.set('l',st.low); p.set('i',st.iv); p.set('q',st.upq);
@@ -701,6 +704,9 @@ function saveURL(){ const p=new URLSearchParams();
 function loadURL(){ const p=new URLSearchParams(location.search);
   if(p.has('scale')&&SCALES[p.get('scale')]) st.keyScale=p.get('scale');
   if(p.has('root')){ const i=ROOT_SHARP.indexOf(p.get('root')); st.keyPc = i>=0 ? i : noteFromName(p.get('root')).pc; }
+  // if the URL didn't specify a key, inherit the sub-bass tool's last key (same origin).
+  // The live "linked" chip is only shown on an actual storage event (proves it's open).
+  if(!p.has('root')){ const sb=readSubbassKey(); if(sb){ st.keyPc=sb.pc; st.keyScale=sb.scale; } }
   if(p.has('x')) st.rootName=p.get('x');
   else if(p.has('r')){ const i=+p.get('r'); if(i>=0&&i<12) st.rootName=LEGACY_ROOTS[i]; }
   else if(st.keyPc!=null) st.rootName=tonicSpelling(st.keyPc, st.keyScale||'major');
@@ -726,7 +732,7 @@ buildTblTabs(); buildModeTabs();
 $('keyTonic').value = st.keyPc==null ? '' : String(st.keyPc);
 $('keyScale').value = st.keyScale || '';
 $('revLow').querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x.dataset.v===revLow));
-relabelKeyTonic(); renderKeyView();
+relabelKeyTonic(); setLinked(subbassLinked); renderKeyView();
 render();
 setTab(st.tab);
 </script>
