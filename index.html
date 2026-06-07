@@ -126,6 +126,10 @@
   .combo .cslash{font-weight:800; font-size:1.02rem; white-space:nowrap}
   .combo .cslash .u{color:var(--up)} .combo .cslash .l{color:var(--low)}
   .combo .arr{color:var(--faint)} .combo .csym{font-weight:800; font-variant-numeric:tabular-nums}
+  .combo.inkey{border-left:3px solid var(--both); padding-left:calc(.8rem - 3px)}
+  .combo.outkey{opacity:.5}
+  table.sys tr.inkey td:first-child{box-shadow:inset 3px 0 0 var(--both)}
+  table.sys tr.outkey{opacity:.5}
   .combo.active{border-color:var(--accent); background:rgba(110,168,254,.13); box-shadow:inset 0 0 0 1px var(--accent)}
   .key-chip.active{border-color:var(--accent); background:rgba(110,168,254,.16); box-shadow:inset 0 0 0 1px var(--accent)}
   table.sys tr.active td{background:rgba(110,168,254,.14)}
@@ -575,12 +579,15 @@ function renderRecipes(list, boxId){
   const box=$(boxId); box.innerHTML='';
   if(!list.length){ box.innerHTML='<div class="empty">この体系（三和音2つ）で該当するボイシングはありません。</div>'; return; }
   const root=curRoot();
-  const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=`${list.length} 件`; box.appendChild(cnt);
+  // when a key is set, surface in-key voicings first
+  if(keyActive()) list=[...list].sort((a,b)=> (inKeyOf(b.low,b.iv,b.upq)?1:0)-(inKeyOf(a.low,a.iv,a.upq)?1:0));
+  const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=`${list.length} 件${keyActive()?'（緑＝キー内）':''}`; box.appendChild(cnt);
   list.forEach(x=>{
     const up=buildTriad(root, x.low==='dim'?'maj':x.upq, x.iv);
     const upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
     const lowName=root.name+(x.low==='maj'?'':x.low==='min'?'m':'dim');
-    const c=document.createElement('div'); c.className='combo'; c.dataset.low=x.low; c.dataset.iv=x.iv; c.dataset.upq=x.upq;
+    const ik=inKeyOf(x.low,x.iv,x.upq);
+    const c=document.createElement('div'); c.className='combo'+(ik===true?' inkey':ik===false?' outkey':''); c.dataset.low=x.low; c.dataset.iv=x.iv; c.dataset.upq=x.upq;
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
       `<span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:root.name+x.e.sym}</span>`+
       `<span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${x.degs.join(' ')}</span>`;
@@ -589,6 +596,7 @@ function renderRecipes(list, boxId){
   });
   markActive();
 }
+function inKeyOf(low,iv,upq){ if(!keyActive()) return null; const ks=keySet(); return [...voicingPcs(curRoot().pc,low,iv,upq)].every(pc=>ks.has(pc)); }
 
 /* ---------- color tab ---------- */
 let revLow='any'; const revSel=new Set();
@@ -619,7 +627,8 @@ function buildModeBody(){ const root=curRoot(), box=$('modeBody'), md=MODES[mode
   md.combos.forEach(([low,iv,upq])=>{ const e=low==='dim'?LOCRIAN:DATA[`${low}|${iv}|${upq}`];
     const up=buildTriad(root,(low==='dim'?'maj':upq),iv), upQ=low==='dim'?'':(upq==='maj'?'':'m');
     const lowName=root.name+(low==='maj'?'':low==='min'?'m':'dim');
-    const c=document.createElement('div'); c.className='combo'; c.style.marginBottom='.5rem'; c.dataset.low=low; c.dataset.iv=iv; c.dataset.upq=upq;
+    const ik=inKeyOf(low,iv,upq);
+    const c=document.createElement('div'); c.className='combo'+(ik===true?' inkey':ik===false?' outkey':''); c.style.marginBottom='.5rem'; c.dataset.low=low; c.dataset.iv=iv; c.dataset.upq=upq;
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
       `<span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span><span class="cnote">${e.warn?'⚠ ':''}${e.mode}</span>`;
     c.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); }); box.appendChild(c); });
@@ -632,8 +641,11 @@ function buildTblTabs(){ const t=$('tblTabs'); t.innerHTML='';
   [['maj','下＝maj'],['min','下＝min'],['dim','下＝dim（Locrian）']].forEach(([v,lab])=>{ const b=document.createElement('button'); b.className='seg'+(v===tblMode?' on':''); b.textContent=lab;
     b.addEventListener('click',()=>{ tblMode=v; buildTblTabs(); buildSysTable(); }); t.appendChild(b); }); }
 function buildSysTable(){ const tb=$('sysBody'); tb.innerHTML=''; const root=curRoot();
-  if(tblMode==='dim'){ addSysRow(tb,'dim','b2','maj',LOCRIAN,root,'b2 上','maj'); return; }
-  IVORDER.forEach(iv=> ['maj','min'].forEach(upq=>{ const e=DATA[`${tblMode}|${iv}|${upq}`]; addSysRow(tb,tblMode,iv,upq,e,root,iv+' 上',upq); }));
+  if(tblMode==='dim'){ addSysRow(tb,'dim','b2','maj',LOCRIAN,root,'b2 上','maj'); markActive(); return; }
+  let rows=[];
+  IVORDER.forEach(iv=> ['maj','min'].forEach(upq=>{ rows.push({iv,upq,e:DATA[`${tblMode}|${iv}|${upq}`]}); }));
+  if(keyActive()) rows.sort((a,b)=> (inKeyOf(tblMode,b.iv,b.upq)?1:0)-(inKeyOf(tblMode,a.iv,a.upq)?1:0));
+  rows.forEach(r=> addSysRow(tb,tblMode,r.iv,r.upq,r.e,root,r.iv+' 上',r.upq));
   markActive();
 }
 function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
@@ -641,7 +653,9 @@ function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
   const seen=new Set(),uniq=[]; [...lower,...upTriad].forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name);uniq.push(n);} });
   uniq.sort((a,b)=>((a.pc-root.pc+12)%12)-((b.pc-root.pc+12)%12));
   const degs=uniq.map(n=>degree(root,n)).join(' ');
+  const ik=inKeyOf(low,iv,upq);
   const tr=document.createElement('tr'); tr.dataset.low=low; tr.dataset.iv=iv; tr.dataset.upq=upq;
+  if(ik===true) tr.classList.add('inkey'); else if(ik===false) tr.classList.add('outkey');
   tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td><td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span></td><td class="degs">${degs}</td><td class="md${e.warn?' warn':''}">${e.warn?'⚠ ':''}${e.mode}</td>`;
   tr.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); });
   tb.appendChild(tr);
