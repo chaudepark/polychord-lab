@@ -35,9 +35,13 @@
   }
   .wrap{max-width:1040px; margin:0 auto}
   header{margin-bottom:1.2rem}
+  .hrow{display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap}
   h1{font-size:1.5rem; font-weight:800; margin:0 0 .25rem; letter-spacing:.01em}
   h1 .tag{font-size:.6rem; font-weight:700; vertical-align:middle; color:var(--up); border:1px solid var(--up); border-radius:999px; padding:.1rem .45rem; margin-left:.5rem}
   .lead{color:var(--muted); font-size:.86rem; margin:0; max-width:72ch}
+  .lang{display:inline-flex; gap:.2rem; border:1px solid var(--border2); border-radius:999px; padding:.2rem; flex:none}
+  .lang button{background:none; border:none; color:var(--muted); font:inherit; font-size:.76rem; font-weight:700; padding:.22rem .65rem; border-radius:999px; cursor:pointer}
+  .lang button.active{background:var(--accent); color:#0f1115}
 
   .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.2rem 1.2rem}
   .cgroup{display:flex; flex-direction:column; gap:.4rem}
@@ -194,16 +198,19 @@
 <body>
 <div class="wrap">
 <header>
-  <h1>Polychord Lab <span class="tag">理論検証済み</span></h1>
-  <p class="lead">トライアド2つの「スラッシュ／ポリコード」から拡張和音の<b style="color:var(--text)">色</b>を探すツール。実際の構成音と度数を常に計算して表示します。曲の<b style="color:var(--text)">土台（キー）</b>はサブベースツールで決め、ここでは色・配置を詰める想定です。</p>
+  <div class="hrow">
+    <h1>Polychord Lab <span class="tag" data-i18n="tag">理論検証済み</span></h1>
+    <div class="lang" id="langToggle"><button data-lang="en">EN</button><button data-lang="ja">日本語</button></div>
+  </div>
+  <p class="lead" data-i18n-html="lead">トライアド2つの「スラッシュ／ポリコード」から拡張和音の<b style="color:var(--text)">色</b>を探すツール。実際の構成音と度数を常に計算して表示します。曲の<b style="color:var(--text)">土台（キー）</b>はサブベースツールで決め、ここでは色・配置を詰める想定です。</p>
 </header>
 
 <!-- ===== HERO: foundation (key) + current voicing ===== -->
 <div class="card hero">
   <div class="foundation">
-    <div class="cgroup"><span class="clabel">曲の土台 — キー</span><div class="segs"><select id="keyTonic" class="seg"></select></div></div>
-    <div class="cgroup"><span class="clabel">スケール</span><div class="segs"><select id="keyScale" class="seg"></select></div></div>
-    <span class="linkchip" id="linkChip" hidden>🔗 サブベース連動</span>
+    <div class="cgroup"><span class="clabel" data-i18n="f_key">曲の土台 — キー</span><div class="segs"><select id="keyTonic" class="seg"></select></div></div>
+    <div class="cgroup"><span class="clabel" data-i18n="f_scale">スケール</span><div class="segs"><select id="keyScale" class="seg"></select></div></div>
+    <span class="linkchip" id="linkChip" data-i18n="linkchip" hidden>🔗 サブベース連動</span>
     <a id="subLink" class="btn ghost" target="_blank" rel="noopener" style="display:none"></a>
   </div>
   <div class="result">
@@ -217,30 +224,30 @@
   <div class="kbdrow">
     <div class="kbd"><div class="kbd-inner" id="kbd"></div></div>
     <div class="analysis">
-      <div class="arow"><span class="k">構成音</span><div class="pills" id="notes"></div></div>
-      <div class="arow"><span class="k">度数</span><div class="pills" id="degs"></div></div>
+      <div class="arow"><span class="k" data-i18n="a_notes">構成音</span><div class="pills" id="notes"></div></div>
+      <div class="arow"><span class="k" data-i18n="a_degs">度数</span><div class="pills" id="degs"></div></div>
     </div>
   </div>
 
   <div class="herobar">
-    <div class="cgroup"><span class="clabel">ルート (X)</span><div class="segs"><select id="root" class="seg"></select></div></div>
-    <div class="cgroup"><span class="clabel">下の鳴らし方</span>
+    <div class="cgroup"><span class="clabel" data-i18n="hb_root">ルート (X)</span><div class="segs"><select id="root" class="seg"></select></div></div>
+    <div class="cgroup"><span class="clabel" data-i18n="hb_bass">下の鳴らし方</span>
       <div class="segs" id="bassmode">
-        <button class="seg" data-v="triad">三和音</button>
-        <button class="seg" data-v="single">単音ベース</button>
+        <button class="seg" data-v="triad" data-i18n="bass_triad">三和音</button>
+        <button class="seg" data-v="single" data-i18n="bass_single">単音ベース</button>
       </div>
     </div>
-    <div class="cgroup"><span class="clabel">上の音域</span>
+    <div class="cgroup"><span class="clabel" data-i18n="hb_reg">上の音域</span>
       <div class="segs" id="regmode">
-        <button class="seg" data-v="level">揃える</button>
-        <button class="seg" data-v="stack">積む</button>
+        <button class="seg" data-v="level" data-i18n="reg_level">揃える</button>
+        <button class="seg" data-v="stack" data-i18n="reg_stack">積む</button>
       </div>
     </div>
-    <button class="btn" id="play">▶ 試聴</button>
+    <button class="btn" id="play" data-i18n="play">▶ 試聴</button>
     <span class="legend">
-      <span><i style="background:var(--low)"></i>下</span>
-      <span><i style="background:var(--up)"></i>上</span>
-      <span><i style="background:var(--both)"></i>共有</span>
+      <span data-i18n-html="lg_low"><i style="background:var(--low)"></i>下</span>
+      <span data-i18n-html="lg_up"><i style="background:var(--up)"></i>上</span>
+      <span data-i18n-html="lg_both"><i style="background:var(--both)"></i>共有</span>
     </span>
   </div>
 </div>
@@ -248,33 +255,33 @@
 <!-- ===== PICKER (tabbed input methods) ===== -->
 <div class="card picker">
   <div class="tabbar" id="tabbar">
-    <button class="seg" data-v="key">キーで探す</button>
-    <button class="seg" data-v="build">組み立てる</button>
-    <button class="seg" data-v="color">色（度数）で</button>
-    <button class="seg" data-v="name">コード名で</button>
-    <button class="seg" data-v="upper">上で探す</button>
-    <button class="seg" data-v="modulate">転調</button>
-    <button class="seg" data-v="mode">モードで</button>
-    <button class="seg" data-v="list">一覧</button>
+    <button class="seg" data-v="key" data-i18n="tab_key">キーで探す</button>
+    <button class="seg" data-v="build" data-i18n="tab_build">組み立てる</button>
+    <button class="seg" data-v="color" data-i18n="tab_color">色（度数）で</button>
+    <button class="seg" data-v="name" data-i18n="tab_name">コード名で</button>
+    <button class="seg" data-v="upper" data-i18n="tab_upper">上で探す</button>
+    <button class="seg" data-v="modulate" data-i18n="tab_modulate">転調</button>
+    <button class="seg" data-v="mode" data-i18n="tab_mode">モードで</button>
+    <button class="seg" data-v="list" data-i18n="tab_list">一覧</button>
   </div>
 
   <!-- key -->
   <div class="tabpanel" data-tab="key">
-    <p class="hint">土台のキーに収まる拡張ボイシングを度数別に表示します。チップをクリックで上の結果へ。</p>
+    <p class="hint" data-i18n="hint_key">土台のキーに収まる拡張ボイシングを度数別に表示します。チップをクリックで上の結果へ。</p>
     <div class="results" id="keyResults"></div>
   </div>
 
   <!-- build -->
   <div class="tabpanel" data-tab="build" hidden>
-    <p class="hint">ルート (X) は上で選択。下の三和音＋上の三和音を組み合わせて色を作ります。</p>
+    <p class="hint" data-i18n="hint_build">ルート (X) は上で選択。下の三和音＋上の三和音を組み合わせて色を作ります。</p>
     <div class="pickrow">
-      <div class="cgroup"><span class="clabel">下コード</span>
+      <div class="cgroup"><span class="clabel" data-i18n="clabel_lowchord">下コード</span>
         <div class="segs" id="lowq">
           <button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button><button class="seg dim" data-v="dim">dim</button>
         </div>
       </div>
-      <div class="cgroup"><span class="clabel">上コードのルート（X からの音程）</span><div class="segs" id="upiv"></div></div>
-      <div class="cgroup"><span class="clabel">上コード</span>
+      <div class="cgroup"><span class="clabel" data-i18n="clabel_upiv">上コードのルート（X からの音程）</span><div class="segs" id="upiv"></div></div>
+      <div class="cgroup"><span class="clabel" data-i18n="clabel_upchord">上コード</span>
         <div class="segs" id="upq"><button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button></div>
       </div>
     </div>
@@ -282,41 +289,41 @@
 
   <!-- color -->
   <div class="tabpanel" data-tab="color" hidden>
-    <p class="hint">欲しい度数（色）を選ぶと、その音を含むボイシングを一覧します。</p>
+    <p class="hint" data-i18n="hint_color">欲しい度数（色）を選ぶと、その音を含むボイシングを一覧します。</p>
     <div class="pickrow">
-      <div class="cgroup"><span class="clabel">下コード</span>
-        <div class="segs" id="revLow"><button class="seg" data-v="any">すべて</button><button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button></div>
+      <div class="cgroup"><span class="clabel" data-i18n="clabel_lowchord">下コード</span>
+        <div class="segs" id="revLow"><button class="seg" data-v="any" data-i18n="rev_all">すべて</button><button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button></div>
       </div>
-      <div class="cgroup" style="flex:1;min-width:240px"><span class="clabel">含めたい度数（複数選択）</span><div class="segs" id="revDegs"></div></div>
+      <div class="cgroup" style="flex:1;min-width:240px"><span class="clabel" data-i18n="clabel_degs">含めたい度数（複数選択）</span><div class="segs" id="revDegs"></div></div>
     </div>
     <div class="results" id="colorResults"></div>
   </div>
 
   <!-- name -->
   <div class="tabpanel" data-tab="name" hidden>
-    <p class="hint">目的の和音を選ぶと、その積み方（レシピ）を表示します。</p>
+    <p class="hint" data-i18n="hint_name">目的の和音を選ぶと、その積み方（レシピ）を表示します。</p>
     <div class="pickrow">
-      <div class="cgroup"><span class="clabel">目的の和音（X = ルート）</span><div class="segs"><select id="revChord" class="seg"></select></div></div>
+      <div class="cgroup"><span class="clabel" data-i18n="clabel_target">目的の和音（X = ルート）</span><div class="segs"><select id="revChord" class="seg"></select></div></div>
     </div>
     <div class="results" id="nameResults"></div>
   </div>
 
   <!-- upper (fixed upper triad, moving bass) -->
   <div class="tabpanel" data-tab="upper" hidden>
-    <p class="hint">上トライアド（色）を固定し、それを生むベース違いの和音を一覧します。上声を保ったままベースだけ動かす進行に。</p>
+    <p class="hint" data-i18n="hint_upper">上トライアド（色）を固定し、それを生むベース違いの和音を一覧します。上声を保ったままベースだけ動かす進行に。</p>
     <div class="pickrow">
-      <div class="cgroup"><span class="clabel">上トライアド</span><div class="segs"><select id="upRootSel" class="seg"></select></div></div>
-      <div class="cgroup"><span class="clabel">種類</span>
+      <div class="cgroup"><span class="clabel" data-i18n="clabel_uptriad">上トライアド</span><div class="segs"><select id="upRootSel" class="seg"></select></div></div>
+      <div class="cgroup"><span class="clabel" data-i18n="clabel_kind">種類</span>
         <div class="segs" id="upQualSel"><button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button></div>
       </div>
-      <button class="btn ghost" id="upFromCur" style="align-self:flex-end">今の上トライアドにする</button>
+      <button class="btn ghost" id="upFromCur" style="align-self:flex-end" data-i18n="up_fromcur">今の上トライアドにする</button>
     </div>
     <div class="results" id="upperResults"></div>
   </div>
 
   <!-- modulate -->
   <div class="tabpanel" data-tab="modulate" hidden>
-    <p class="hint">今の土台キーから別キーへ「色で」渡るための3つの見方。<b style="color:var(--text)">どこへ・どの強さで</b>転調するかはサブベースツールで決め、ここで<b style="color:var(--text)">その瞬間をどう響かせるか</b>を詰めます。まず行き先キーを選択：</p>
+    <p class="hint" data-i18n-html="hint_modulate">今の土台キーから別キーへ「色で」渡るための3つの見方。<b style="color:var(--text)">どこへ・どの強さで</b>転調するかはサブベースツールで決め、ここで<b style="color:var(--text)">その瞬間をどう響かせるか</b>を詰めます。まず行き先キーを選択：</p>
     <div id="modTargets" class="key-chips" style="margin-bottom:1.1rem"></div>
     <div id="modBody"></div>
   </div>
@@ -331,17 +338,17 @@
   <div class="tabpanel" data-tab="list" hidden>
     <div class="mode-tabs" id="tblTabs"></div>
     <div class="tbl-wrap">
-      <table class="sys"><thead><tr><th>上コード</th><th>導かれる和音</th><th>度数（実音）</th><th>モード／注意</th></tr></thead><tbody id="sysBody"></tbody></table>
+      <table class="sys"><thead><tr><th data-i18n="th_upchord">上コード</th><th data-i18n="th_derived">導かれる和音</th><th data-i18n="th_degs">度数（実音）</th><th data-i18n="th_mode">モード／注意</th></tr></thead><tbody id="sysBody"></tbody></table>
     </div>
-    <p style="font-size:.76rem;color:var(--muted);margin:.8rem 0 0">行をクリックで結果へ。⚠ はバイトーナルな衝突を含むボイシング。</p>
+    <p style="font-size:.76rem;color:var(--muted);margin:.8rem 0 0" data-i18n="list_note">行をクリックで結果へ。⚠ はバイトーナルな衝突を含むボイシング。</p>
   </div>
 </div>
 
 <!-- ===== collapsible explanation ===== -->
 <details class="explain">
-  <summary>配置・オーケストレーションと使い方</summary>
+  <summary data-i18n="explain_summary">配置・オーケストレーションと使い方</summary>
   <div class="orch">
-    <div>
+    <div data-i18n-html="orch_left">
       <h3>セクション別の役割</h3>
       <ul>
         <li><span class="reg">低弦／ベース</span>：ルート＋5度。サブは単音で深く。</li>
@@ -354,7 +361,7 @@
         <li>各セクションが構成音を分担 → 合奏全体で拡張和音が成立。</li>
       </ul>
     </div>
-    <div>
+    <div data-i18n-html="orch_right">
       <h3>実例：D/C → Cmaj13(#11)</h3>
       <div class="ex">
         <div class="extitle"><span style="color:var(--up)">D</span><span style="color:var(--faint)">/</span><span style="color:var(--low)">C</span> → Cmaj13(#11)</div>
@@ -369,12 +376,113 @@
 </details>
 
 <footer>
-  <p>構成音と度数はすべて X=ルートとして実音から計算しています。理論体系は文献照合で検証済み。</p>
+  <p data-i18n="footer">構成音と度数はすべて X=ルートとして実音から計算しています。理論体系は文献照合で検証済み。</p>
 </footer>
 </div>
 
 <script>
 "use strict";
+/* ---------- i18n (language synced with the sub-bass tool via localStorage "subbass-lang") ---------- */
+let LANG='ja';
+const I18N={
+  ja:{
+    title:'Polychord Lab — ハイブリッド／ポリコード探索器',
+    tag:'理論検証済み',
+    lead:'トライアド2つの「スラッシュ／ポリコード」から拡張和音の<b style="color:var(--text)">色</b>を探すツール。実際の構成音と度数を常に計算して表示します。曲の<b style="color:var(--text)">土台（キー）</b>はサブベースツールで決め、ここでは色・配置を詰める想定です。',
+    f_key:'曲の土台 — キー', f_scale:'スケール', linkchip:'🔗 サブベース連動',
+    a_notes:'構成音', a_degs:'度数',
+    hb_root:'ルート (X)', hb_bass:'下の鳴らし方', bass_triad:'三和音', bass_single:'単音ベース',
+    hb_reg:'上の音域', reg_level:'揃える', reg_stack:'積む', play:'▶ 試聴',
+    lg_low:'<i style="background:var(--low)"></i>下', lg_up:'<i style="background:var(--up)"></i>上', lg_both:'<i style="background:var(--both)"></i>共有',
+    tab_key:'キーで探す', tab_build:'組み立てる', tab_color:'色（度数）で', tab_name:'コード名で', tab_upper:'上で探す', tab_modulate:'転調', tab_mode:'モードで', tab_list:'一覧',
+    hint_key:'土台のキーに収まる拡張ボイシングを度数別に表示します。チップをクリックで上の結果へ。',
+    hint_build:'ルート (X) は上で選択。下の三和音＋上の三和音を組み合わせて色を作ります。',
+    clabel_lowchord:'下コード', clabel_upiv:'上コードのルート（X からの音程）', clabel_upchord:'上コード',
+    hint_color:'欲しい度数（色）を選ぶと、その音を含むボイシングを一覧します。',
+    rev_all:'すべて', clabel_degs:'含めたい度数（複数選択）',
+    hint_name:'目的の和音を選ぶと、その積み方（レシピ）を表示します。', clabel_target:'目的の和音（X = ルート）',
+    hint_upper:'上トライアド（色）を固定し、それを生むベース違いの和音を一覧します。上声を保ったままベースだけ動かす進行に。',
+    clabel_uptriad:'上トライアド', clabel_kind:'種類', up_fromcur:'今の上トライアドにする',
+    hint_modulate:'今の土台キーから別キーへ「色で」渡るための3つの見方。<b style="color:var(--text)">どこへ・どの強さで</b>転調するかはサブベースツールで決め、ここで<b style="color:var(--text)">その瞬間をどう響かせるか</b>を詰めます。まず行き先キーを選択：',
+    th_upchord:'上コード', th_derived:'導かれる和音', th_degs:'度数（実音）', th_mode:'モード／注意',
+    list_note:'行をクリックで結果へ。⚠ はバイトーナルな衝突を含むボイシング。',
+    explain_summary:'配置・オーケストレーションと使い方',
+    orch_left:'<h3>セクション別の役割</h3><ul><li><span class="reg">低弦／ベース</span>：ルート＋5度。サブは単音で深く。</li><li><span class="reg">中域（Va./木管）</span>：3rd・7th など <b>機能決定音</b> を明確に。</li><li><span class="reg">高域（Vn./Fl./Ob.）</span>：9th・11th・13th（上部トライアド）を必要に応じて。</li></ul><h3 style="margin-top:1rem">ダブリングとブレンド</h3><ul><li>同音重ね（doubling）で音色ブレンド・音量確保。</li><li>各セクションが構成音を分担 → 合奏全体で拡張和音が成立。</li></ul>',
+    orch_right:'<h3>実例：D/C → Cmaj13(#11)</h3><div class="ex"><div class="extitle"><span style="color:var(--up)">D</span><span style="color:var(--faint)">/</span><span style="color:var(--low)">C</span> → Cmaj13(#11)</div><div class="exrow"><b>ベース：</b>C（ルート）</div><div class="exrow"><b>内声：</b>E, B（3rd・maj7 ＝機能音）</div><div class="exrow"><b>高声：</b>D – F# – A（D maj トライアド ＝ 9・#11・13）</div><div class="exrow" style="margin-top:.5rem;color:var(--muted)">→ 合奏全体で「Cmaj13(#11)」が成立。単一鍵盤では省略されがちな maj7 も内声が補える。</div></div><p class="theory"><b>使い方の芯：</b>「今のボイシング」は常に1つ。上の結果パネルが主役で、下のタブはそれを選ぶ入口です。土台（キー）を決め →「キーで探す」から色を選ぶ、が最短ルート。困ったら表記より <b>度数（実音）</b> を信頼してください（同じ音でも文脈で呼び名は変わります）。</p>',
+    footer:'構成音と度数はすべて X=ルートとして実音から計算しています。理論体系は文献照合で検証済み。',
+    none_opt:'—（指定なし）', empty_recipes:'この体系（三和音2つ）で該当するボイシングはありません。',
+    key_empty:'上の「曲の土台 — キー」を選ぶ（またはサブベースツールからのリンクで開く）と、そのキーで使える色がここに並びます。',
+    keyfit_in:(t,s)=>`✓ ${t} ${s} 内`, keyfit_out:'✗ キー外',
+    count:(n,ik)=>`${n} 件${ik?'（緑＝キー内）':''}`,
+    upper_count:(up,n,ik)=>`上＝${up} ／ ${n} 件${ik?'（緑＝キー内）':''}`,
+    sublink:(t,s)=>`🎚 サブベースで ${t} ${s} を開く`,
+    tbl_maj:'下＝maj', tbl_min:'下＝min', tbl_dim:'下＝dim（Locrian）', iv_up:iv=>`${iv} 上`,
+    mod_empty_nokey:'上の「曲の土台 — キー」を設定すると、そこからの転調の渡り方が表示されます（サブベースツールからのリンクでも可）。',
+    mod_empty_norel:'このキーから関係調を導けませんでした。', parallel_tag:'同主調',
+    mod_pivot_title:'① 蝶番コード（ピボット）を色で',
+    mod_pivot_hint:'home／target 両方に在るコードを、両キーに収まる拡張ボイシングで鳴らす。渡る瞬間そのもの。クリックでヒーローへ。',
+    mod_pivot_header:(p,hk,hr,hf,tk,tr,tf)=>`<b>${p}</b> ＝ ${hk}で <span style="color:var(--text)">${hr} (${hf})</span> ／ ${tk}で <span style="color:var(--text)">${tr} (${tf})</span>`,
+    mod_pivot_nopivot:'この2キー間に共通の三和音がありません。直接転調かセカンダリードミナントで渡ります。',
+    mod_pivot_nohits:'両キーに収まる拡張ボイシングはこの体系内にありません（素の三和音で渡ります）。',
+    mod_pedal_title:'② 共通ベースで滑り込む（ペダル）',
+    mod_pedal_hint:'ベース＝橋渡し。両キー共通の音をベースに保ったまま、上の三和音だけ行き先キーへ。下のチップでベース音を選択。',
+    mod_pedal_nocommon:'共通音がありません。', mod_pedal_nohits:(b,tk)=>`${b} の上に ${tk} のボイシングはこの体系内にありません。`,
+    badge_both:'両キー', badge_target:'→ 行き先',
+    mod_reint_title:'③ 今の響きの多重身分',
+    mod_reint_hint:'いまヒーローに出ている響きと同じ実音セットが成り立つ別キー。曖昧さを使った不意の転調。クリックでそのキーへ移ります。',
+    mod_reint_nohero:'ヒーローにボイシングがありません。', reint_now:'今',
+  },
+  en:{
+    title:'Polychord Lab — hybrid / polychord explorer',
+    tag:'Verified',
+    lead:'Find the <b style="color:var(--text)">colour</b> of extended chords from two stacked triads (slash / polychord). Actual notes and degrees are always computed and shown. Decide the song\'s <b style="color:var(--text)">foundation (key)</b> in the sub-bass tool; here you refine colour and voicing.',
+    f_key:'Foundation — Key', f_scale:'Scale', linkchip:'🔗 Sub-Bass linked',
+    a_notes:'Notes', a_degs:'Degrees',
+    hb_root:'Root (X)', hb_bass:'Lower voicing', bass_triad:'Triad', bass_single:'Bass note',
+    hb_reg:'Upper register', reg_level:'Level', reg_stack:'Stack', play:'▶ Audition',
+    lg_low:'<i style="background:var(--low)"></i>Lower', lg_up:'<i style="background:var(--up)"></i>Upper', lg_both:'<i style="background:var(--both)"></i>Shared',
+    tab_key:'By key', tab_build:'Build', tab_color:'By colour', tab_name:'By name', tab_upper:'By upper', tab_modulate:'Modulate', tab_mode:'By mode', tab_list:'Table',
+    hint_key:'Voicings that fit the foundation key, grouped by scale degree. Click a chip to load it above.',
+    hint_build:'Pick the root (X) above. Combine a lower triad + an upper triad to build the colour.',
+    clabel_lowchord:'Lower chord', clabel_upiv:'Upper-chord root (interval from X)', clabel_upchord:'Upper chord',
+    hint_color:'Pick the degrees (colours) you want; voicings containing them are listed.',
+    rev_all:'All', clabel_degs:'Degrees to include (multi-select)',
+    hint_name:'Pick a target chord to see how to stack it (the recipe).', clabel_target:'Target chord (X = root)',
+    hint_upper:'Fix the upper triad (the colour) and list every bass that produces it — for progressions that hold the top while only the bass moves.',
+    clabel_uptriad:'Upper triad', clabel_kind:'Type', up_fromcur:'Use current upper triad',
+    hint_modulate:'Three ways to cross "by colour" from the current foundation key to another. Decide <b style="color:var(--text)">where & how strongly</b> to modulate in the sub-bass tool; here you refine <b style="color:var(--text)">how the moment sounds</b>. First pick a target key:',
+    th_upchord:'Upper', th_derived:'Chord', th_degs:'Degrees (actual)', th_mode:'Mode / note',
+    list_note:'Click a row to load it. ⚠ marks voicings with a bitonal clash.',
+    explain_summary:'Voicing, orchestration & how to use',
+    orch_left:'<h3>Roles by section</h3><ul><li><span class="reg">Low strings / bass</span>: root + 5th. Sub as a single deep note.</li><li><span class="reg">Mid (Va. / woodwinds)</span>: make the <b>function-defining tones</b> (3rd, 7th) clear.</li><li><span class="reg">High (Vn. / Fl. / Ob.)</span>: 9th / 11th / 13th (the upper triad) as needed.</li></ul><h3 style="margin-top:1rem">Doubling & blend</h3><ul><li>Double in unison for timbral blend and level.</li><li>Each section carries part of the chord → the full ensemble realises the extension.</li></ul>',
+    orch_right:'<h3>Example: D/C → Cmaj13(#11)</h3><div class="ex"><div class="extitle"><span style="color:var(--up)">D</span><span style="color:var(--faint)">/</span><span style="color:var(--low)">C</span> → Cmaj13(#11)</div><div class="exrow"><b>Bass:</b> C (root)</div><div class="exrow"><b>Inner:</b> E, B (3rd · maj7 = function tones)</div><div class="exrow"><b>Top:</b> D – F# – A (D major triad = 9 · #11 · 13)</div><div class="exrow" style="margin-top:.5rem;color:var(--muted)">→ the full ensemble forms "Cmaj13(#11)". The maj7, often dropped on a single keyboard, is supplied by inner voices.</div></div><p class="theory"><b>The core idea:</b> there is always one "current voicing". The result panel above is the star; the tabs below are just ways to choose it. Set the foundation (key) → pick a colour from "By key" is the shortest path. When in doubt, trust the <b>degrees (actual notes)</b> over the symbol (the same notes get different names by context).</p>',
+    footer:'All notes and degrees are computed from actual pitches with X as the root. The theory framework has been validated against the literature.',
+    none_opt:'— (none)', empty_recipes:'No voicing in this system (two triads) matches.',
+    key_empty:'Choose the foundation key above (or open via a link from the sub-bass tool) to list the colours usable in that key.',
+    keyfit_in:(t,s)=>`✓ in ${t} ${s}`, keyfit_out:'✗ out of key',
+    count:(n,ik)=>`${n} result${n===1?'':'s'}${ik?' · green = in key':''}`,
+    upper_count:(up,n,ik)=>`Upper = ${up} · ${n} result${n===1?'':'s'}${ik?' · green = in key':''}`,
+    sublink:(t,s)=>`🎚 Open ${t} ${s} in Sub-Bass`,
+    tbl_maj:'Lower = maj', tbl_min:'Lower = min', tbl_dim:'Lower = dim (Locrian)', iv_up:iv=>`${iv} up`,
+    mod_empty_nokey:'Set the foundation key above to see how to modulate from it (a link from the sub-bass tool works too).',
+    mod_empty_norel:'No related keys could be derived from this key.', parallel_tag:'parallel',
+    mod_pivot_title:'① The pivot chord, in colour',
+    mod_pivot_hint:'Voice the chord that exists in both keys with extensions that fit both — the crossing moment itself. Click to load above.',
+    mod_pivot_header:(p,hk,hr,hf,tk,tr,tf)=>`<b>${p}</b> = <span style="color:var(--text)">${hr} (${hf})</span> in ${hk} / <span style="color:var(--text)">${tr} (${tf})</span> in ${tk}`,
+    mod_pivot_nopivot:'These two keys share no common triad. Cross directly or via a secondary dominant.',
+    mod_pivot_nohits:'No extended voicing in this system fits both keys (cross with the plain triad).',
+    mod_pedal_title:'② Slide in over a common bass (pedal)',
+    mod_pedal_hint:'Bass = the bridge. Hold a note common to both keys in the bass while only the upper triad moves into the target key. Pick the bass below.',
+    mod_pedal_nocommon:'No common tones.', mod_pedal_nohits:(b,tk)=>`No ${tk} voicing in this system sits over ${b}.`,
+    badge_both:'both keys', badge_target:'→ target',
+    mod_reint_title:"③ The current sound's other identities",
+    mod_reint_hint:'Other keys where the exact pitch-set now shown above is diatonic — a surprise modulation through ambiguity. Click to move to that key.',
+    mod_reint_nohero:'No voicing above.', reint_now:'now',
+  },
+};
+function t(key,...args){ const v=I18N[LANG][key]; return typeof v==='function'?v(...args):v; }
+function rawSym(e){ return LANG==='en'&&e.symEn?e.symEn:e.sym; }
+
 /* ---------- music helpers ---------- */
 const LETTERS=['C','D','E','F','G','A','B'];
 const LPC=[0,2,4,5,7,9,11];
@@ -430,7 +538,8 @@ function keySet(){ return new Set(keyDegrees(tonicSpelling(st.keyPc,st.keyScale)
 
 /* ---------- data ---------- */
 const IVORDER=['M2','M3','P4','P5','M6','m7','M7'];
-const IVLABEL={M2:'長2度',M3:'長3度',P4:'完4度',P5:'完5度',M6:'長6度',m7:'短7度',M7:'長7度'};
+const IVLABEL={ ja:{M2:'長2度',M3:'長3度',P4:'完4度',P5:'完5度',M6:'長6度',m7:'短7度',M7:'長7度'},
+  en:{M2:'major 2nd',M3:'major 3rd',P4:'perfect 4th',P5:'perfect 5th',M6:'major 6th',m7:'minor 7th',M7:'major 7th'} };
 const DATA={
  'maj|M2|maj':{sym:'maj13(#11)',mode:'Lydian'},
  'maj|M2|min':{sym:'6/9(add11)',mode:'Ionian',note:'♮11はM3と半音でぶつかる（アヴォイド）。♭7は無いので属和音ではない'},
@@ -448,14 +557,14 @@ const DATA={
  'maj|M7|min':{sym:'maj9(#11)',mode:'Lydian'},
  'min|M2|maj':{sym:'m6/9(#11)',mode:'Dorian/Lydian-m',note:'#11はリディアン色。♭7は無い（m6/9系）'},
  'min|M2|min':{sym:'m6/9(add11)',mode:'Dorian',note:'ドリアンの積み。♭7は無い（m6/9系）'},
- 'min|M3|maj':{sym:'バイトーナル（♭3/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3、5と#5が半音で重なる（バイトーナル）'},
- 'min|M3|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3が半音で重なる（バイトーナル）'},
+ 'min|M3|maj':{sym:'バイトーナル（♭3/♮3 衝突）',symEn:'Bitonal (♭3/♮3 clash)',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3、5と#5が半音で重なる（バイトーナル）'},
+ 'min|M3|min':{sym:'バイトーナル（♮3 混入）',symEn:'Bitonal (♮3 added)',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3が半音で重なる（バイトーナル）'},
  'min|P4|maj':{sym:'m6(add11)',mode:'Dorian'},
  'min|P4|min':{sym:'m(add11,♭13)',mode:'Aeolian',note:'エオリアン色（♭13）。♭7は無い'},
  'min|P5|maj':{sym:'m9(maj7)',mode:'Melodic-m'},
  'min|P5|min':{sym:'m9',mode:'Dorian/Aeolian'},
- 'min|M6|maj':{sym:'バイトーナル（♭9/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭9・♮3が混じり♭3と半音で重なる（バイトーナル）'},
- 'min|M6|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3が半音で重なる（バイトーナル）'},
+ 'min|M6|maj':{sym:'バイトーナル（♭9/♮3 衝突）',symEn:'Bitonal (♭9/♮3 clash)',raw:1,mode:'Bitonal',warn:1,note:'♭9・♮3が混じり♭3と半音で重なる（バイトーナル）'},
+ 'min|M6|min':{sym:'バイトーナル（♮3 混入）',symEn:'Bitonal (♮3 added)',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3が半音で重なる（バイトーナル）'},
  'min|m7|maj':{sym:'m11',mode:'Dorian/Aeolian'},
  'min|m7|min':{sym:'m7(♭9,11)',mode:'Phrygian'},
  'min|M7|maj':{sym:'m(maj7,#11)',mode:'Melodic-m'},
@@ -477,14 +586,14 @@ const INDEX=[];
 
 /* ---------- modes ---------- */
 const MODES={
-  Lydian:{desc:'明るく浮遊する #11 が特徴。メジャー系で最も色彩的。',combos:[['maj','M2','maj'],['maj','M7','maj'],['maj','M7','min']]},
-  Ionian:{desc:'純メジャー。素直な響き。属和音的な誤読に注意（♭7は無い）。',combos:[['maj','P5','maj'],['maj','M3','min'],['maj','M6','min']]},
-  Mixolydian:{desc:'♭7 を持つドミナント系。9th/11th が自然に乗る。',combos:[['maj','P5','min'],['maj','m7','maj']]},
-  Dorian:{desc:'マイナーだが ♮13（長6度）が明るい。ジャズ／モーダルの定番。',combos:[['min','m7','maj'],['min','P4','maj'],['min','M2','min']]},
-  Aeolian:{desc:'ナチュラルマイナー。♭13（♭6）が陰の色。♮13は使わない。',combos:[['min','P4','min'],['min','m7','maj']]},
-  Phrygian:{desc:'♭9（♭2）が強い緊張感。スパニッシュ／ダーク。',combos:[['min','m7','min']]},
-  Locrian:{desc:'♭5 を持つ唯一の減三和音系。不安定なクラスター。',combos:[['dim','b2','maj']]},
-  'Melodic-m':{desc:'メロディックマイナー。m(maj7) 系の洗練された緊張。',combos:[['min','P5','maj'],['min','M7','min'],['min','M7','maj']]},
+  Lydian:{desc:{ja:'明るく浮遊する #11 が特徴。メジャー系で最も色彩的。',en:'Bright, floating #11 — the most colourful major sound.'},combos:[['maj','M2','maj'],['maj','M7','maj'],['maj','M7','min']]},
+  Ionian:{desc:{ja:'純メジャー。素直な響き。属和音的な誤読に注意（♭7は無い）。',en:'Plain major. Watch for misreading it as dominant (no ♭7).'},combos:[['maj','P5','maj'],['maj','M3','min'],['maj','M6','min']]},
+  Mixolydian:{desc:{ja:'♭7 を持つドミナント系。9th/11th が自然に乗る。',en:'Dominant family with ♭7; 9th/11th sit naturally on top.'},combos:[['maj','P5','min'],['maj','m7','maj']]},
+  Dorian:{desc:{ja:'マイナーだが ♮13（長6度）が明るい。ジャズ／モーダルの定番。',en:'Minor but bright via ♮13 (major 6th). A jazz/modal staple.'},combos:[['min','m7','maj'],['min','P4','maj'],['min','M2','min']]},
+  Aeolian:{desc:{ja:'ナチュラルマイナー。♭13（♭6）が陰の色。♮13は使わない。',en:'Natural minor. ♭13 (♭6) is the shadow colour; no ♮13.'},combos:[['min','P4','min'],['min','m7','maj']]},
+  Phrygian:{desc:{ja:'♭9（♭2）が強い緊張感。スパニッシュ／ダーク。',en:'Strong tension from ♭9 (♭2). Spanish / dark.'},combos:[['min','m7','min']]},
+  Locrian:{desc:{ja:'♭5 を持つ唯一の減三和音系。不安定なクラスター。',en:'The only ♭5 diminished family — an unstable cluster.'},combos:[['dim','b2','maj']]},
+  'Melodic-m':{desc:{ja:'メロディックマイナー。m(maj7) 系の洗練された緊張。',en:'Melodic minor — the refined tension of the m(maj7) family.'},combos:[['min','P5','maj'],['min','M7','min'],['min','M7','maj']]},
 };
 
 /* ---------- state ---------- */
@@ -496,7 +605,8 @@ const rootSel=$('root');
 ROOT_OPTS.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; rootSel.appendChild(o); });
 function syncRootSelect(){ if(![...rootSel.options].some(o=>o.value===st.rootName)){ const o=document.createElement('option'); o.value=st.rootName; o.textContent=st.rootName; rootSel.appendChild(o); } rootSel.value=st.rootName; }
 const upivBox=$('upiv');
-IVORDER.forEach(iv=>{ const b=document.createElement('button'); b.className='seg'; b.dataset.v=iv; b.textContent=iv; b.title=IVLABEL[iv]; upivBox.appendChild(b); });
+IVORDER.forEach(iv=>{ const b=document.createElement('button'); b.className='seg'; b.dataset.v=iv; b.textContent=iv; b.title=IVLABEL[LANG][iv]; upivBox.appendChild(b); });
+function applyIvTitles(){ upivBox.querySelectorAll('.seg').forEach(b=>{ if(IVLABEL[LANG][b.dataset.v]) b.title=IVLABEL[LANG][b.dataset.v]; }); }
 
 function normalizeForDim(){ if(st.low==='dim'){ st.iv='b2'; st.upq='maj'; } else if(st.iv==='b2'){ st.iv='M2'; } }
 function setActive(boxId,key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===st[key])); }
@@ -527,7 +637,7 @@ function render(){
   const lowLabel = single ? root.name : root.name+lowSuffix;
 
   $('slash').innerHTML=`<span class="u">${upTriad[0].name}${upQ}</span><span class="bar">/</span><span class="l">${lowLabel}</span>`;
-  $('sym').textContent = entry ? (entry.raw ? entry.sym : root.name+entry.sym) : '?';
+  $('sym').textContent = entry ? (entry.raw ? rawSym(entry) : root.name+entry.sym) : '?';
   const mode=$('mode'); mode.textContent=entry?entry.mode:''; mode.className='modechip'+(entry&&entry.warn?' warn':'');
 
   const kf=$('keyfit');
@@ -535,7 +645,7 @@ function render(){
     const ks=keySet(); const actual=new Set([...lower,...upTriad].map(n=>n.pc));
     const inKey=[...actual].every(pc=>ks.has(pc));
     kf.hidden=false; kf.className='keyfit '+(inKey?'in':'out');
-    kf.textContent=inKey? `✓ ${tonicSpelling(st.keyPc,st.keyScale)} ${SCALE_LABEL[st.keyScale]} 内` : '✗ キー外';
+    kf.textContent=inKey? t('keyfit_in', tonicSpelling(st.keyPc,st.keyScale), SCALE_LABEL[st.keyScale]) : t('keyfit_out');
   } else kf.hidden=true;
 
   // notes + degrees
@@ -618,11 +728,11 @@ function loadVoicing(rootName, low, iv, upq){ st.rootName=rootName; st.low=low; 
 /* ---------- recipe rows (color/name results) ---------- */
 function renderRecipes(list, boxId){
   const box=$(boxId); box.innerHTML='';
-  if(!list.length){ box.innerHTML='<div class="empty">この体系（三和音2つ）で該当するボイシングはありません。</div>'; return; }
+  if(!list.length){ box.innerHTML=`<div class="empty">${t('empty_recipes')}</div>`; return; }
   const root=curRoot();
   // when a key is set, surface in-key voicings first
   if(keyActive()) list=[...list].sort((a,b)=> (inKeyOf(b.low,b.iv,b.upq)?1:0)-(inKeyOf(a.low,a.iv,a.upq)?1:0));
-  const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=`${list.length} 件${keyActive()?'（緑＝キー内）':''}`; box.appendChild(cnt);
+  const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=t('count', list.length, keyActive()); box.appendChild(cnt);
   list.forEach(x=>{
     const up=buildTriad(root, x.low==='dim'?'maj':x.upq, x.iv);
     const upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
@@ -630,7 +740,7 @@ function renderRecipes(list, boxId){
     const ik=inKeyOf(x.low,x.iv,x.upq);
     const c=document.createElement('div'); c.className='combo'+(ik===true?' inkey':ik===false?' outkey':''); c.dataset.low=x.low; c.dataset.iv=x.iv; c.dataset.upq=x.upq;
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
-      `<span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:root.name+x.e.sym}</span>`+
+      `<span class="arr">→</span><span class="csym">${x.e.raw?rawSym(x.e):root.name+x.e.sym}</span>`+
       `<span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${x.degs.join(' ')}</span>`;
     c.addEventListener('click',()=>{ loadVoicing(root.name,x.low,x.iv,x.upq); });
     box.appendChild(c);
@@ -664,29 +774,29 @@ function buildModeTabs(){ const t=$('modeTabs'); t.innerHTML='';
   Object.keys(MODES).forEach(m=>{ const b=document.createElement('button'); b.className='seg'+(m===modeCur?' on':''); b.textContent=m;
     b.addEventListener('click',()=>{ modeCur=m; buildModeTabs(); buildModeBody(); }); t.appendChild(b); }); }
 function buildModeBody(){ const root=curRoot(), box=$('modeBody'), md=MODES[modeCur];
-  box.innerHTML=`<p class="mode-desc">${md.desc}</p>`;
+  box.innerHTML=`<p class="mode-desc">${md.desc[LANG]}</p>`;
   md.combos.forEach(([low,iv,upq])=>{ const e=low==='dim'?LOCRIAN:DATA[`${low}|${iv}|${upq}`];
     const up=buildTriad(root,(low==='dim'?'maj':upq),iv), upQ=low==='dim'?'':(upq==='maj'?'':'m');
     const lowName=root.name+(low==='maj'?'':low==='min'?'m':'dim');
     const ik=inKeyOf(low,iv,upq);
     const c=document.createElement('div'); c.className='combo'+(ik===true?' inkey':ik===false?' outkey':''); c.style.marginBottom='.5rem'; c.dataset.low=low; c.dataset.iv=iv; c.dataset.upq=upq;
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
-      `<span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span><span class="cnote">${e.warn?'⚠ ':''}${e.mode}</span>`;
+      `<span class="arr">→</span><span class="csym">${e.raw?rawSym(e):root.name+e.sym}</span><span class="cnote">${e.warn?'⚠ ':''}${e.mode}</span>`;
     c.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); }); box.appendChild(c); });
   markActive();
 }
 
 /* ---------- list tab ---------- */
 let tblMode='maj';
-function buildTblTabs(){ const t=$('tblTabs'); t.innerHTML='';
-  [['maj','下＝maj'],['min','下＝min'],['dim','下＝dim（Locrian）']].forEach(([v,lab])=>{ const b=document.createElement('button'); b.className='seg'+(v===tblMode?' on':''); b.textContent=lab;
-    b.addEventListener('click',()=>{ tblMode=v; buildTblTabs(); buildSysTable(); }); t.appendChild(b); }); }
+function buildTblTabs(){ const tbar=$('tblTabs'); tbar.innerHTML='';
+  [['maj',t('tbl_maj')],['min',t('tbl_min')],['dim',t('tbl_dim')]].forEach(([v,lab])=>{ const b=document.createElement('button'); b.className='seg'+(v===tblMode?' on':''); b.textContent=lab;
+    b.addEventListener('click',()=>{ tblMode=v; buildTblTabs(); buildSysTable(); }); tbar.appendChild(b); }); }
 function buildSysTable(){ const tb=$('sysBody'); tb.innerHTML=''; const root=curRoot();
-  if(tblMode==='dim'){ addSysRow(tb,'dim','b2','maj',LOCRIAN,root,'b2 上','maj'); markActive(); return; }
+  if(tblMode==='dim'){ addSysRow(tb,'dim','b2','maj',LOCRIAN,root,t('iv_up','b2'),'maj'); markActive(); return; }
   let rows=[];
   IVORDER.forEach(iv=> ['maj','min'].forEach(upq=>{ rows.push({iv,upq,e:DATA[`${tblMode}|${iv}|${upq}`]}); }));
   if(keyActive()) rows.sort((a,b)=> (inKeyOf(tblMode,b.iv,b.upq)?1:0)-(inKeyOf(tblMode,a.iv,a.upq)?1:0));
-  rows.forEach(r=> addSysRow(tb,tblMode,r.iv,r.upq,r.e,root,r.iv+' 上',r.upq));
+  rows.forEach(r=> addSysRow(tb,tblMode,r.iv,r.upq,r.e,root,t('iv_up',r.iv),r.upq));
   markActive();
 }
 function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
@@ -697,7 +807,7 @@ function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
   const ik=inKeyOf(low,iv,upq);
   const tr=document.createElement('tr'); tr.dataset.low=low; tr.dataset.iv=iv; tr.dataset.upq=upq;
   if(ik===true) tr.classList.add('inkey'); else if(ik===false) tr.classList.add('outkey');
-  tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td><td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span></td><td class="degs">${degs}</td><td class="md${e.warn?' warn':''}">${e.warn?'⚠ ':''}${e.mode}</td>`;
+  tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td><td><span class="sym">${e.raw?rawSym(e):'X'+e.sym}</span></td><td class="degs">${degs}</td><td class="md${e.warn?' warn':''}">${e.warn?'⚠ ':''}${e.mode}</td>`;
   tr.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); });
   tb.appendChild(tr);
 }
@@ -705,7 +815,7 @@ function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
 /* ---------- key tab + foundation ---------- */
 const ROMAN=['I','II','III','IV','V','VI','VII'];
 (function(){ const kt=$('keyTonic');
-  const none=document.createElement('option'); none.value=''; none.textContent='—（指定なし）'; kt.appendChild(none);
+  const none=document.createElement('option'); none.value=''; none.textContent=t('none_opt'); none.dataset.i18n='none_opt'; kt.appendChild(none);
   for(let pc=0;pc<12;pc++){ const o=document.createElement('option'); o.value=pc; o.textContent=ROOT_SHARP[pc]; kt.appendChild(o); }
   const ks=$('keyScale'); const noneS=document.createElement('option'); noneS.value=''; noneS.textContent='—'; ks.appendChild(noneS);
   Object.keys(SCALES).forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=SCALE_LABEL[k]; ks.appendChild(o); });
@@ -732,9 +842,9 @@ function renderKeyView(){
   const box=$('keyResults'), link=$('subLink');
   if(keyActive()){
     link.href=`https://chaudepark.github.io/scale-reference/?root=${ROOT_SHARP[st.keyPc]}&scale=${st.keyScale}`;
-    link.style.display='inline-flex'; link.textContent=`🎚 サブベースで ${tonicSpelling(st.keyPc,st.keyScale)} ${SCALE_LABEL[st.keyScale]} を開く`;
+    link.style.display='inline-flex'; link.textContent=t('sublink', tonicSpelling(st.keyPc,st.keyScale), SCALE_LABEL[st.keyScale]);
   } else link.style.display='none';
-  if(!keyActive()){ box.innerHTML='<div class="empty">上の「曲の土台 — キー」を選ぶ（またはサブベースツールからのリンクで開く）と、そのキーで使える色がここに並びます。</div>'; return; }
+  if(!keyActive()){ box.innerHTML=`<div class="empty">${t('key_empty')}</div>`; return; }
   const degs=keyDegrees(tonicSpelling(st.keyPc,st.keyScale), st.keyScale), ks=new Set(degs.map(d=>d.pc));
   box.innerHTML='';
   degs.forEach((dn,di)=>{ const hits=INDEX.filter(x=> [...voicingPcs(dn.pc,x.low,x.iv,x.upq)].every(pc=>ks.has(pc)));
@@ -742,7 +852,7 @@ function renderKeyView(){
     const grp=document.createElement('div'); grp.className='key-deg';
     let html=`<div class="key-deg-h"><b>${ROMAN[di]||''}</b>${dn.name}</div><div class="key-chips">`;
     hits.forEach(x=>{ const up=buildTriad(dn,x.low==='dim'?'maj':x.upq,x.iv), upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
-      const lowName=dn.name+(x.low==='maj'?'':x.low==='min'?'m':'dim'), sym=x.e.raw?x.e.sym:dn.name+x.e.sym;
+      const lowName=dn.name+(x.low==='maj'?'':x.low==='min'?'m':'dim'), sym=x.e.raw?rawSym(x.e):dn.name+x.e.sym;
       html+=`<button class="key-chip${x.e.warn?' warn':''}" data-root="${dn.name}" data-low="${x.low}" data-iv="${x.iv}" data-upq="${x.upq}">`+
         `<span class="kc-slash"><span class="u">${up[0].name}${upQ}</span>/<span class="l">${lowName}</span></span><span class="kc-sym">${sym}</span></button>`; });
     html+='</div>'; grp.innerHTML=html; box.appendChild(grp); });
@@ -787,7 +897,7 @@ function renderUpperFamily(){
   if(keyActive()){ const ks=keySet(); items.sort((a,b)=> ([...voicingPcs(b.bassPc,b.low,b.iv,b.upq)].every(p=>ks.has(p))?1:0)-([...voicingPcs(a.bassPc,a.low,a.iv,a.upq)].every(p=>ks.has(p))?1:0)); }
   box.innerHTML='';
   const upName=ROOT_SHARP[st.upRoot]+(st.upQual==='min'?'m':'');
-  const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=`上＝${upName} ／ ${items.length} 件${keyActive()?'（緑＝キー内）':''}`; box.appendChild(cnt);
+  const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=t('upper_count', upName, items.length, keyActive()); box.appendChild(cnt);
   items.forEach(x=>{
     const bass=noteFromName(keyDegName(x.bassPc));
     const up=buildTriad(bass, x.low==='dim'?'maj':x.upq, x.iv);
@@ -797,7 +907,7 @@ function renderUpperFamily(){
     const degs=(function(){ const seen=new Set(),u=[]; [...buildTriad(bass,(x.low==='dim'?'dim':x.low),null),...up].forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name);u.push(n);} }); u.sort((a,b)=>((a.pc-bass.pc+12)%12)-((b.pc-bass.pc+12)%12)); return u.map(n=>degree(bass,n)).join(' '); })();
     const c=document.createElement('div'); c.className='combo'+(ik===true?' inkey':ik===false?' outkey':''); c.dataset.low=x.low; c.dataset.iv=x.iv; c.dataset.upq=x.upq; c.dataset.root=bass.name;
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
-      `<span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:bass.name+x.e.sym}</span>`+
+      `<span class="arr">→</span><span class="csym">${x.e.raw?rawSym(x.e):bass.name+x.e.sym}</span>`+
       `<span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${degs}</span>`;
     c.addEventListener('click',()=>{ loadVoicing(bass.name,x.low,x.iv,x.upq); });
     box.appendChild(c);
@@ -848,7 +958,7 @@ function comboEl(rootName,low,iv,upq,e,badgeHtml){
   const degs=u.map(n=>degree(root,n)).join(' ');
   const c=document.createElement('div'); c.className='combo'; c.dataset.low=low; c.dataset.iv=iv; c.dataset.upq=upq; c.dataset.root=root.name;
   c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
-    `<span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span>`+
+    `<span class="arr">→</span><span class="csym">${e.raw?rawSym(e):root.name+e.sym}</span>`+
     (badgeHtml||'')+`<span class="cnote">${e.warn?'⚠ ':''}${e.mode} · ${degs}</span>`;
   c.addEventListener('click',()=>loadVoicing(root.name,low,iv,upq));
   return c;
@@ -861,17 +971,17 @@ function gotoKey(pc,scale){ st.keyPc=pc; st.keyScale=scale; st.modTarget=null; s
 
 function renderModulate(){
   const tg=$('modTargets'), body=$('modBody');
-  if(!keyActive()){ tg.innerHTML=''; body.innerHTML='<div class="empty">上の「曲の土台 — キー」を設定すると、そこからの転調の渡り方が表示されます（サブベースツールからのリンクでも可）。</div>'; return; }
+  if(!keyActive()){ tg.innerHTML=''; body.innerHTML=`<div class="empty">${t('mod_empty_nokey')}</div>`; return; }
   const homePc=st.keyPc, homeScale=st.keyScale;
   let rel=relatedKeys(homePc,homeScale);
   if(homeScale==='major') rel.push({pc:homePc,scale:'minor',homeDeg:0,homeQual:'parallel'});
   else if(homeScale==='minor') rel.push({pc:homePc,scale:'major',homeDeg:0,homeQual:'parallel'});
-  if(!rel.length){ tg.innerHTML=''; body.innerHTML='<div class="empty">このキーから関係調を導けませんでした。</div>'; return; }
+  if(!rel.length){ tg.innerHTML=''; body.innerHTML=`<div class="empty">${t('mod_empty_norel')}</div>`; return; }
   if(!st.modTarget || !rel.some(r=>r.pc===st.modTarget.pc&&r.scale===st.modTarget.scale)) st.modTarget={pc:rel[0].pc,scale:rel[0].scale};
   // target-key chips
   tg.innerHTML='';
   rel.forEach(r=>{ const on=st.modTarget.pc===r.pc&&st.modTarget.scale===r.scale;
-    const lab=r.homeQual==='parallel'?'同主調':romanQ(r.homeDeg,r.homeQual);
+    const lab=r.homeQual==='parallel'?t('parallel_tag'):romanQ(r.homeDeg,r.homeQual);
     const b=document.createElement('button'); b.className='seg'+(on?' on':'');
     b.innerHTML=`${tonicSpelling(r.pc,r.scale)} ${SCALE_LABEL[r.scale]} <span style="opacity:.6;font-weight:400">${lab}</span>`;
     b.addEventListener('click',()=>{ st.modTarget={pc:r.pc,scale:r.scale}; st.modBass=null; renderModulate(); saveURL(); }); tg.appendChild(b); });
@@ -886,26 +996,26 @@ function renderModulate(){
 }
 // ① pivot chord, realised as rich both-key voicings
 function modPivot(homePc,homeScale,tgtPc,tgtScale,common){
-  const sec=modSection('① 蝶番コード（ピボット）を色で','home／target 両方に在るコードを、両キーに収まる拡張ボイシングで鳴らす。渡る瞬間そのもの。クリックでヒーローへ。');
+  const sec=modSection(t('mod_pivot_title'),t('mod_pivot_hint'));
   const piv=pivotChord(homePc,homeScale,tgtPc,tgtScale);
-  if(!piv){ const e=document.createElement('div'); e.className='empty'; e.textContent='この2キー間に共通の三和音がありません。直接転調かセカンダリードミナントで渡ります。'; sec.appendChild(e); return sec; }
+  if(!piv){ const e=document.createElement('div'); e.className='empty'; e.textContent=t('mod_pivot_nopivot'); sec.appendChild(e); return sec; }
   const rootName=noteNameInKey(piv.rootPc,homePc,homeScale);
   const pivName=rootName+lowSuffixOf(piv.qual);
   const hf=funcOf(homeScale,piv.homeDeg), tf=funcOf(tgtScale,piv.targetDeg);
   const head=document.createElement('div'); head.className='key-deg-h'; head.style.marginBottom='.5rem';
-  head.innerHTML=`<b>${pivName}</b> ＝ ${homeName(homePc,homeScale)}で <span style="color:var(--text)">${romanQ(piv.homeDeg,piv.qual)} (${hf})</span> ／ ${homeName(tgtPc,tgtScale)}で <span style="color:var(--text)">${romanQ(piv.targetDeg,piv.qual)} (${tf})</span>`;
+  head.innerHTML=t('mod_pivot_header', pivName, homeName(homePc,homeScale), romanQ(piv.homeDeg,piv.qual), hf, homeName(tgtPc,tgtScale), romanQ(piv.targetDeg,piv.qual), tf);
   sec.appendChild(head);
   const hits=INDEX.filter(x=> x.low===piv.qual && [...voicingPcs(piv.rootPc,x.low,x.iv,x.upq)].every(p=>common.has(p)));
-  if(!hits.length){ const e=document.createElement('div'); e.className='empty'; e.textContent='両キーに収まる拡張ボイシングはこの体系内にありません（素の三和音で渡ります）。'; sec.appendChild(e); return sec; }
+  if(!hits.length){ const e=document.createElement('div'); e.className='empty'; e.textContent=t('mod_pivot_nohits'); sec.appendChild(e); return sec; }
   hits.sort((a,b)=>a.degs.length-b.degs.length);
   const wrap=document.createElement('div'); wrap.className='results';
   hits.forEach(x=> wrap.appendChild(comboEl(rootName,x.low,x.iv,x.upq,x.e))); sec.appendChild(wrap); return sec;
 }
 // ② common-bass pedal: hold a shared bass, let the upper triad slide into the target key
 function modPedal(homePc,homeScale,tgtPc,tgtScale,homeSet,tgtSet,common){
-  const sec=modSection('② 共通ベースで滑り込む（ペダル）','ベース＝橋渡し。両キー共通の音をベースに保ったまま、上の三和音だけ行き先キーへ。下のチップでベース音を選択。');
+  const sec=modSection(t('mod_pedal_title'),t('mod_pedal_hint'));
   const commonArr=[...common].sort((a,b)=>a-b);
-  if(!commonArr.length){ const e=document.createElement('div'); e.className='empty'; e.textContent='共通音がありません。'; sec.appendChild(e); return sec; }
+  if(!commonArr.length){ const e=document.createElement('div'); e.className='empty'; e.textContent=t('mod_pedal_nocommon'); sec.appendChild(e); return sec; }
   if(st.modBass==null || !common.has(st.modBass)) st.modBass=[homePc,tgtPc,(tgtPc+7)%12].find(p=>common.has(p)) ?? commonArr[0];
   const chips=document.createElement('div'); chips.className='segs'; chips.style.marginBottom='.7rem';
   commonArr.forEach(pc=>{ const b=document.createElement('button'); b.className='seg'+(pc===st.modBass?' on':''); b.textContent=noteNameInKey(pc,tgtPc,tgtScale);
@@ -914,17 +1024,17 @@ function modPedal(homePc,homeScale,tgtPc,tgtScale,homeSet,tgtSet,common){
   const bassName=noteNameInKey(st.modBass,tgtPc,tgtScale);
   let hits=INDEX.filter(x=> [...voicingPcs(st.modBass,x.low,x.iv,x.upq)].every(p=>tgtSet.has(p)));
   hits.sort((a,b)=>a.degs.length-b.degs.length);
-  if(!hits.length){ const e=document.createElement('div'); e.className='empty'; e.textContent=`${bassName} の上に ${homeName(tgtPc,tgtScale)} のボイシングはこの体系内にありません。`; sec.appendChild(e); return sec; }
+  if(!hits.length){ const e=document.createElement('div'); e.className='empty'; e.textContent=t('mod_pedal_nohits', bassName, homeName(tgtPc,tgtScale)); sec.appendChild(e); return sec; }
   const wrap=document.createElement('div'); wrap.className='results';
   hits.forEach(x=>{ const dual=[...voicingPcs(st.modBass,x.low,x.iv,x.upq)].every(p=>homeSet.has(p));
-    const badge=dual?'<span class="keyfit in" style="font-size:.66rem">両キー</span>':'<span class="keyfit out" style="font-size:.66rem">→ 行き先</span>';
+    const badge=dual?`<span class="keyfit in" style="font-size:.66rem">${t('badge_both')}</span>`:`<span class="keyfit out" style="font-size:.66rem">${t('badge_target')}</span>`;
     wrap.appendChild(comboEl(bassName,x.low,x.iv,x.upq,x.e,badge)); }); sec.appendChild(wrap); return sec;
 }
 // ③ the current voicing's other identities — keys where the same pitch-set is diatonic
 function modReinterpret(homePc,homeScale){
-  const sec=modSection('③ 今の響きの多重身分','いまヒーローに出ている響きと同じ実音セットが成り立つ別キー。曖昧さを使った不意の転調。クリックでそのキーへ移ります。');
+  const sec=modSection(t('mod_reint_title'),t('mod_reint_hint'));
   const pcs=[...new Set((window._chordMidi||[]).map(m=>((m%12)+12)%12))];
-  if(!pcs.length){ const e=document.createElement('div'); e.className='empty'; e.textContent='ヒーローにボイシングがありません。'; sec.appendChild(e); return sec; }
+  if(!pcs.length){ const e=document.createElement('div'); e.className='empty'; e.textContent=t('mod_reint_nohero'); sec.appendChild(e); return sec; }
   const rootPc=curRoot().pc, fits=[];
   for(const scale of ['major','minor']) for(let t=0;t<12;t++){ const ks=pcSetOf(t,scale);
     if(pcs.every(p=>ks.has(p))){ const tri=diatonicTriads(t,scale).find(x=>x.rootPc===rootPc);
@@ -933,7 +1043,7 @@ function modReinterpret(homePc,homeScale){
   fits.sort((a,b)=> (b.isHome?1:0)-(a.isHome?1:0) || a.deg-b.deg);
   const wrap=document.createElement('div'); wrap.className='key-chips';
   fits.forEach(f=>{ const b=document.createElement('button'); b.className='key-chip'+(f.isHome?' active':'');
-    b.innerHTML=`<span class="kc-slash">${homeName(f.pc,f.scale)}${f.isHome?' <span style="color:var(--muted);font-size:.7rem">今</span>':''}</span>`+
+    b.innerHTML=`<span class="kc-slash">${homeName(f.pc,f.scale)}${f.isHome?` <span style="color:var(--muted);font-size:.7rem">${t('reint_now')}</span>`:''}</span>`+
       `<span class="kc-sym">${f.roman}${f.func?' ('+f.func+')':''}</span>`;
     b.addEventListener('click',()=>{ if(!f.isHome) gotoKey(f.pc,f.scale); }); wrap.appendChild(b); });
   sec.appendChild(wrap); return sec;
@@ -954,7 +1064,30 @@ function applySubbass(k){
   $('keyTonic').value = st.keyPc==null?'':String(st.keyPc); $('keyScale').value=st.keyScale||''; relabelKeyTonic();
   renderKeyView(); render(); refreshTab();
 }
-window.addEventListener('storage', e=>{ if(e.key==='subbass-key') applySubbass(readSubbassKey()); });
+window.addEventListener('storage', e=>{
+  if(e.key==='subbass-key') applySubbass(readSubbassKey());
+  if(e.key==='subbass-lang' && (e.newValue==='en'||e.newValue==='ja')) setLang(e.newValue);
+});
+
+/* ---------- language (synced with sub-bass tool) ---------- */
+// Static chrome carries data-i18n / data-i18n-html; dynamic strings go through t().
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.title=t('title');
+  document.querySelectorAll('[data-i18n]').forEach(el=> el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-html]').forEach(el=> el.innerHTML=t(el.dataset.i18nHtml));
+}
+function setLang(lang){ if(lang!=='en'&&lang!=='ja') return; LANG=lang;
+  applyI18n(); applyIvTitles();
+  document.querySelectorAll('#langToggle button').forEach(b=> b.classList.toggle('active', b.dataset.lang===LANG));
+  // re-render everything dynamic so JS-generated strings switch too
+  relabelKeyTonic(); render(); renderKeyView(); refreshTab();
+}
+function detectLang(){ try{ const s=localStorage.getItem('subbass-lang'); if(s==='en'||s==='ja') return s; }catch(e){}
+  const nav=(navigator.languages&&navigator.languages[0])||navigator.language||'en';
+  return /^ja/i.test(nav)?'ja':'en'; }
+document.getElementById('langToggle').addEventListener('click', e=>{ const lang=e.target.dataset.lang; if(!lang) return;
+  try{ localStorage.setItem('subbass-lang', lang); }catch(err){} setLang(lang); });
 
 /* ---------- URL ---------- */
 function saveURL(){ const p=new URLSearchParams();
@@ -988,11 +1121,14 @@ function loadURL(){ const p=new URLSearchParams(location.search);
 }
 
 /* ---------- init ---------- */
+LANG=detectLang();
 loadURL();
 buildTblTabs(); buildModeTabs();
 $('keyTonic').value = st.keyPc==null ? '' : String(st.keyPc);
 $('keyScale').value = st.keyScale || '';
 $('revLow').querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x.dataset.v===revLow));
+applyI18n(); applyIvTitles();
+document.querySelectorAll('#langToggle button').forEach(b=> b.classList.toggle('active', b.dataset.lang===LANG));
 relabelKeyTonic(); setLinked(subbassLinked); renderKeyView();
 render();
 setTab(st.tab);
