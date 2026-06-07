@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polychord Lab — ハイブリッド／ポリコード探索器</title>
+<meta name="description" content="スラッシュコード（下トライアド＋上トライアド）から拡張和音を導く体系表とインタラクティブ探索器。実際の構成音と度数解析を常時表示。作曲・オーケストレーション向け。">
+<meta name="theme-color" content="#0f1115">
+<style>
+  :root{
+    --bg:#0f1115; --card:#181b22; --card2:#1d2129; --border:#262b36; --border2:#2c3240;
+    --text:#e6e9ef; --muted:#8b93a3; --faint:#5c6373;
+    --low:#6ea8fe;       /* 下トライアド */
+    --up:#e0a23a;        /* 上トライアド */
+    --both:#43c46a;      /* 共有音 */
+    --warn:#e0533a;      /* 衝突・注意 */
+    --accent:#6ea8fe;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:1.8rem 1.1rem 4rem;
+    background:radial-gradient(120% 80% at 75% -10%, #1a1d27 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.55;
+  }
+  .wrap{max-width:1080px; margin:0 auto}
+  header{margin-bottom:1.6rem}
+  h1{font-size:1.6rem; font-weight:800; margin:0 0 .35rem; letter-spacing:.01em}
+  h1 .tag{font-size:.62rem; font-weight:700; vertical-align:middle; color:var(--up); border:1px solid var(--up); border-radius:999px; padding:.12rem .5rem; margin-left:.55rem; letter-spacing:.04em}
+  .lead{color:var(--muted); font-size:.92rem; margin:0; max-width:70ch}
+  h2{font-size:1.12rem; font-weight:700; margin:2.4rem 0 1rem; display:flex; align-items:center; gap:.5rem}
+  h2::before{content:""; width:4px; height:1.05em; background:var(--accent); border-radius:2px}
+
+  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.4rem 1.3rem}
+
+  /* ---- controls ---- */
+  .ctrls{display:flex; flex-wrap:wrap; gap:1.3rem 1.8rem; align-items:flex-end}
+  .cgroup{display:flex; flex-direction:column; gap:.45rem}
+  .clabel{font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted)}
+  .segs{display:inline-flex; gap:.25rem; flex-wrap:wrap}
+  .seg{background:var(--card2); border:1px solid var(--border2); color:var(--text); font:inherit; font-weight:700;
+       font-size:.85rem; padding:.34rem .62rem; border-radius:9px; cursor:pointer; transition:border-color .12s, background .12s; font-variant-numeric:tabular-nums}
+  .seg:hover{border-color:var(--accent)}
+  .seg.on{background:var(--accent); border-color:var(--accent); color:#0f1115}
+  .seg.dim.on{background:var(--warn); border-color:var(--warn)}
+  select.seg{padding-right:1.4rem}
+
+  /* ---- result ---- */
+  .result{margin-top:1.5rem; display:grid; grid-template-columns:auto 1fr; gap:1.2rem 1.6rem; align-items:center}
+  @media(max-width:640px){ .result{grid-template-columns:1fr} }
+  .slash{font-size:2.7rem; font-weight:800; line-height:1; letter-spacing:.01em; white-space:nowrap}
+  .slash .u{color:var(--up)} .slash .l{color:var(--low)} .slash .bar{color:var(--faint); font-weight:400; margin:0 .12em}
+  .rmeta{display:flex; flex-direction:column; gap:.5rem}
+  .sym{font-size:1.5rem; font-weight:800; font-variant-numeric:tabular-nums}
+  .modechip{align-self:flex-start; font-size:.74rem; font-weight:700; color:var(--accent); background:rgba(110,168,254,.13); border-radius:6px; padding:.14rem .5rem}
+  .modechip.warn{color:var(--warn); background:rgba(224,83,58,.13)}
+
+  /* ---- notes / degrees ---- */
+  .analysis{margin-top:1.4rem; display:flex; flex-direction:column; gap:.6rem}
+  .arow{display:flex; align-items:baseline; gap:.7rem; flex-wrap:wrap}
+  .arow .k{font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); width:5.2rem; flex:none}
+  .pills{display:flex; flex-wrap:wrap; gap:.32rem}
+  .pill{font-size:.85rem; font-weight:700; border-radius:7px; padding:.18rem .46rem; font-variant-numeric:tabular-nums; border:1px solid var(--border2); background:var(--card2)}
+  .pill.l{border-color:var(--low); color:var(--low)}
+  .pill.u{border-color:var(--up); color:var(--up)}
+  .pill.b{border-color:var(--both); color:var(--both)}
+  .pill .d{font-size:.72em; color:var(--muted); margin-left:.3rem; font-weight:600}
+
+  .caveat{margin-top:1.1rem; font-size:.86rem; color:var(--muted); display:flex; gap:.5rem; align-items:flex-start; line-height:1.55}
+  .caveat .ic{flex:none; margin-top:.05rem}
+  .caveat.warn{color:#f0b3a6}
+
+  .actions{margin-top:1.2rem; display:flex; gap:.6rem; align-items:center; flex-wrap:wrap}
+  .btn{background:var(--accent); color:#0f1115; border:none; border-radius:9px; padding:.5rem 1.1rem; font:inherit; font-weight:700; cursor:pointer}
+  .btn.ghost{background:none; color:var(--text); border:1px solid var(--border2)}
+  .btn.ghost:hover{border-color:var(--accent)}
+  .legend{font-size:.74rem; color:var(--muted); display:flex; gap:.9rem; flex-wrap:wrap; margin-left:auto}
+  .legend i{display:inline-block; width:.7rem; height:.7rem; border-radius:3px; vertical-align:-1px; margin-right:.3rem}
+
+  /* ---- keyboard ---- */
+  .kbd{position:relative; height:120px; margin-top:1.4rem; user-select:none; overflow-x:auto; padding-bottom:4px}
+  .kbd-inner{position:relative; height:116px; display:flex}
+  .wk{position:relative; width:34px; flex:none; height:116px; background:#f3f4f7; border:1px solid #2a2f3a; border-top:none; border-radius:0 0 5px 5px; margin-right:-1px}
+  .bk{position:absolute; top:0; width:22px; height:72px; background:#1a1d24; border:1px solid #000; border-radius:0 0 4px 4px; z-index:2}
+  .wk.low,.bk.low{background:var(--low)} .wk.up,.bk.up{background:var(--up)} .wk.both,.bk.both{background:var(--both)}
+  .wk .lbl{position:absolute; bottom:5px; left:0; right:0; text-align:center; font-size:.6rem; font-weight:700; color:#3a3f4a; font-variant-numeric:tabular-nums}
+  .wk.low .lbl,.wk.up .lbl,.wk.both .lbl{color:#0f1115}
+  .bk .lbl{position:absolute; bottom:4px; left:0; right:0; text-align:center; font-size:.54rem; font-weight:700; color:#c9cdd6}
+  .bk.low .lbl,.bk.up .lbl,.bk.both .lbl{color:#0f1115}
+
+  /* ---- system table ---- */
+  .tbl-tabs{display:flex; gap:.4rem; margin-bottom:.9rem; flex-wrap:wrap}
+  .tbl-wrap{overflow-x:auto}
+  table.sys{width:100%; border-collapse:collapse; font-size:.86rem; min-width:560px}
+  table.sys th{text-align:left; font-size:.64rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; padding:.4rem .55rem; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card)}
+  table.sys td{padding:.45rem .55rem; border-bottom:1px solid #20242e; vertical-align:top}
+  table.sys tr{cursor:pointer}
+  table.sys tbody tr:hover td{background:var(--card2)}
+  table.sys .up{color:var(--up); font-weight:700; white-space:nowrap}
+  table.sys .sym{font-weight:800; font-size:.92rem; white-space:nowrap}
+  table.sys .degs{color:var(--muted); font-size:.78rem; font-variant-numeric:tabular-nums}
+  table.sys .md{color:var(--accent); font-size:.76rem; white-space:nowrap}
+  table.sys .md.warn{color:var(--warn)}
+  .corr{display:inline-block; font-size:.6rem; font-weight:800; color:var(--up); border:1px solid var(--up); border-radius:4px; padding:0 .25rem; margin-left:.35rem; vertical-align:middle; cursor:help}
+
+  /* ---- modes ---- */
+  .mode-tabs{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem}
+  .mode-body{display:flex; flex-direction:column; gap:.6rem}
+  .mode-desc{font-size:.88rem; color:var(--muted); margin:0 0 .4rem}
+  .combo{display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; background:var(--card2); border:1px solid var(--border2); border-radius:10px; padding:.55rem .8rem; cursor:pointer}
+  .combo:hover{border-color:var(--accent)}
+  .combo .cslash{font-weight:800; font-size:1.05rem; white-space:nowrap}
+  .combo .cslash .u{color:var(--up)} .combo .cslash .l{color:var(--low)}
+  .combo .arr{color:var(--faint)}
+  .combo .csym{font-weight:800; font-variant-numeric:tabular-nums}
+  .combo .cnote{color:var(--muted); font-size:.8rem; margin-left:auto}
+
+  /* ---- orchestration ---- */
+  .orch{display:grid; grid-template-columns:1fr 1fr; gap:1.4rem}
+  @media(max-width:720px){ .orch{grid-template-columns:1fr} }
+  .orch h3{font-size:.95rem; margin:0 0 .5rem}
+  .orch ul{margin:.2rem 0 0; padding-left:1.1rem; font-size:.88rem; color:#cfd4de}
+  .orch li{margin-bottom:.4rem}
+  .orch .reg{font-weight:700; color:var(--text)}
+  .ex{background:var(--card2); border:1px solid var(--border2); border-radius:12px; padding:1rem 1.1rem; margin-top:.4rem}
+  .ex .extitle{font-weight:800; margin-bottom:.5rem}
+  .ex .exrow{font-size:.86rem; color:#cfd4de; margin-bottom:.25rem}
+  .ex .exrow b{color:var(--text)}
+
+  footer{margin-top:2.6rem; font-size:.78rem; color:var(--faint); line-height:1.7}
+  footer b{color:var(--muted)}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Polychord Lab <span class="tag">理論検証済み</span></h1>
+  <p class="lead">下トライアド＋上トライアドの「スラッシュコード」から拡張和音（9th/11th/13th系）を導く体系表とインタラクティブ探索器。
+  コード名（解釈）だけでなく <b style="color:var(--text)">実際の構成音と度数</b> を常に計算して併記します。</p>
+</header>
+
+<!-- ============ EXPLORER ============ -->
+<h2>探索器</h2>
+<div class="card">
+  <div class="ctrls">
+    <div class="cgroup">
+      <span class="clabel">ルート (X)</span>
+      <div class="segs"><select id="root" class="seg"></select></div>
+    </div>
+    <div class="cgroup">
+      <span class="clabel">下コード</span>
+      <div class="segs" id="lowq">
+        <button class="seg" data-v="maj">maj</button>
+        <button class="seg" data-v="min">min</button>
+        <button class="seg dim" data-v="dim">dim</button>
+      </div>
+    </div>
+    <div class="cgroup">
+      <span class="clabel">上コードのルート（X からの音程）</span>
+      <div class="segs" id="upiv"></div>
+    </div>
+    <div class="cgroup">
+      <span class="clabel">上コード</span>
+      <div class="segs" id="upq">
+        <button class="seg" data-v="maj">maj</button>
+        <button class="seg" data-v="min">min</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="result">
+    <div class="slash" id="slash"></div>
+    <div class="rmeta">
+      <div class="sym" id="sym"></div>
+      <div class="modechip" id="mode"></div>
+    </div>
+  </div>
+
+  <div class="kbd"><div class="kbd-inner" id="kbd"></div></div>
+
+  <div class="analysis">
+    <div class="arow"><span class="k">構成音</span><div class="pills" id="notes"></div></div>
+    <div class="arow"><span class="k">度数</span><div class="pills" id="degs"></div></div>
+  </div>
+
+  <div class="caveat" id="caveat"></div>
+
+  <div class="actions">
+    <button class="btn" id="play">▶ 試聴</button>
+    <span class="legend">
+      <span><i style="background:var(--low)"></i>下トライアド</span>
+      <span><i style="background:var(--up)"></i>上トライアド</span>
+      <span><i style="background:var(--both)"></i>共有音</span>
+    </span>
+  </div>
+</div>
+
+<!-- ============ SYSTEM TABLE ============ -->
+<h2>体系表</h2>
+<div class="card">
+  <div class="tbl-tabs" id="tblTabs"></div>
+  <div class="tbl-wrap">
+    <table class="sys">
+      <thead><tr><th>上コード</th><th>導かれる和音</th><th>度数（実音）</th><th>モード／注意</th></tr></thead>
+      <tbody id="sysBody"></tbody>
+    </table>
+  </div>
+  <p style="font-size:.78rem;color:var(--muted);margin:.9rem 0 0">行をクリックすると探索器に読み込まれます。<span class="corr">修正</span> は原典メモから理論的に訂正した項目（カーソルを乗せると理由）。</p>
+</div>
+
+<!-- ============ MODES ============ -->
+<h2>モード別の定番配置</h2>
+<div class="card">
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div class="mode-body" id="modeBody"></div>
+</div>
+
+<!-- ============ ORCHESTRATION ============ -->
+<h2>オーケストレーション指針</h2>
+<div class="card">
+  <div class="orch">
+    <div>
+      <h3>セクション別の役割</h3>
+      <ul>
+        <li><span class="reg">低弦／ベース</span>：ルート＋5度。低域は広く配置。</li>
+        <li><span class="reg">中域（Va./木管）</span>：3rd・7th など <b>機能決定音</b> を明確に。</li>
+        <li><span class="reg">高域（Vn./Fl./Ob.）</span>：9th・11th・13th を必要に応じて重ねる。</li>
+      </ul>
+      <h3 style="margin-top:1.1rem">ダブリングとブレンド</h3>
+      <ul>
+        <li>同音重ね（doubling）で音色ブレンド・音量確保。</li>
+        <li>例：Fl.＋Vn. のユニゾン、弦の divisi。</li>
+        <li>各セクションが構成音を分担 → 合奏全体で拡張和音が成立。</li>
+      </ul>
+    </div>
+    <div>
+      <h3>実例：D/C → Cmaj13(#11)</h3>
+      <div class="ex">
+        <div class="extitle"><span style="color:var(--up)">D</span><span style="color:var(--faint)">/</span><span style="color:var(--low)">C</span> → Cmaj13(#11)</div>
+        <div class="exrow"><b>ベース：</b>C（ルート）</div>
+        <div class="exrow"><b>内声：</b>E, B（3rd・maj7 ＝機能決定音／含意の補完）</div>
+        <div class="exrow"><b>高声：</b>D – F# – A（D maj トライアド ＝ 9・#11・13）</div>
+        <div class="exrow" style="margin-top:.5rem;color:var(--muted)">→ 合奏全体で「Cmaj13(#11)」の響きが成立。単一の鍵盤では maj7(B) が省略されがちでも、内声が補えば完全な拡張和音になる。</div>
+      </div>
+      <p class="mode-desc" style="margin-top:.9rem">「省略音は他パートが補完する」— これが体系表のコード名（解釈）と実音が食い違う場合の橋渡し。探索器の <b>度数</b> 表示で“実際に鳴っている音”を確認しながら、足りない機能音をどのパートに振るか考えると良い。</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p><b>この資料について：</b> 原典は手書きのハイブリッド／ポリコード制作メモ。構成音はすべて X=ルートとして実音から機械計算し、コード表記と突き合わせて検証済み。明らかな誤り（存在しない拡張音の表記、#9↔♭9 の取り違え、♭3／♮3 の半音衝突を隠した表記、ドミナント表記の誤用など）は理論的に修正してあります。</p>
+  <p><b>解釈の幅：</b> 同じ構成音でも文脈で複数の呼び名があり得ます。困ったら表記より <b>度数（実音）</b> を信頼してください。</p>
+</footer>
+</div>
+
+<script>
+"use strict";
+/* ---------- music helpers (proper spelling) ---------- */
+const LETTERS=['C','D','E','F','G','A','B'];
+const LPC=[0,2,4,5,7,9,11];                 // natural pc of each letter
+const ACC={0:'',1:'#',2:'##',11:'b',10:'bb'};
+// roots: [letterIndex, pc]
+const ROOTS=[['C',0,0],['Db',1,1],['D',1,2],['Eb',2,3],['E',2,4],['F',3,5],
+             ['F#',3,6],['G',4,7],['Ab',5,8],['A',5,9],['Bb',6,10],['B',6,11]];
+// interval name -> [letterSteps, semitones]
+const IVAL={ 'b2':[1,1],'M2':[1,2],'M3':[2,4],'P4':[3,5],'P5':[4,7],'M6':[5,9],'m7':[6,10],'M7':[6,11] };
+// triad quality -> [3rd interval, 5th interval]
+const TRIAD={ maj:[[2,4],[4,7]], min:[[2,3],[4,7]], dim:[[2,3],[4,6]] };
+
+function noteName(li,pc){ const a=((pc-LPC[li])%12+12)%12; return LETTERS[li]+(ACC[a]??'?'); }
+function transpose(note,steps,semis){ const li=(note.li+steps)%7; const pc=((note.pc+semis)%12+12)%12; return {li,pc,name:noteName(li,pc)}; }
+function rootNote(idx){ const r=ROOTS[idx]; return {li:LETTERS.indexOf(r[0][0]), pc:r[2], name:r[0]}; }
+
+function buildTriad(root, quality, upRootIv){
+  let r=root;
+  if(upRootIv){ const [s,t]=IVAL[upRootIv]; r=transpose(root,s,t); }
+  const [th,fi]=TRIAD[quality];
+  return [r, transpose(r,th[0],th[1]), transpose(r,fi[0],fi[1])];
+}
+// degree label of a note relative to root: semitone-first (functional),
+// generic interval only disambiguates the enharmonic pairs.
+function degree(root,note){
+  const gen=((note.li-root.li)%7+7)%7;              // 0..6 (generic interval)
+  const sem=((note.pc-root.pc)%12+12)%12;           // 0..11
+  switch(sem){
+    case 0: return 'R';
+    case 1: return '♭9';
+    case 2: return '9';
+    case 3: return gen===1 ? '#9' : '♭3';           // D# vs E♭
+    case 4: return '3';
+    case 5: return '11';
+    case 6: return gen===3 ? '#11' : '♭5';          // F# vs G♭
+    case 7: return '5';
+    case 8: return gen===4 ? '#5' : '♭13';          // G# vs A♭
+    case 9: return '13';
+    case 10: return '♭7';
+    case 11: return 'maj7';
+  }
+}
+
+/* ---------- corrected data (verified) ---------- */
+// key: low|iv|upq  ->  {sym, mode, warn?, fix?}
+const IVORDER=['M2','M3','P4','P5','M6','m7','M7'];
+const IVLABEL={M2:'長2度',M3:'長3度',P4:'完4度',P5:'完5度',M6:'長6度',m7:'短7度',M7:'長7度'};
+const DATA={
+ // ----- lower = maj -----
+ 'maj|M2|maj':{sym:'maj13(#11)',mode:'Lydian'},
+ 'maj|M2|min':{sym:'6/9(add11)',mode:'Ionian',fix:'原典「X13」は誤り：♭7が無く属13にならない。♮11はM3と半音衝突'},
+ 'maj|M3|maj':{sym:'maj7(#5)',mode:'Augmented'},
+ 'maj|M3|min':{sym:'maj7',mode:'Ionian',fix:'原典「maj7(add5)」のadd5は無意味。実体はただのmaj7'},
+ 'maj|P4|maj':{sym:'6(add11)',mode:'Subdominant',fix:'原典「maj11」は7th/9th不在。実体は6(add11)、♮11×M3に注意'},
+ 'maj|P4|min':{sym:'(add11,♭13)',mode:'borrowed iv',fix:'原典「X11(b13)」は♭7不在＝属和音でない。Fm/C系の借用色'},
+ 'maj|P5|maj':{sym:'maj9',mode:'Ionian',fix:'原典「maj9(add13)」は13(A)が存在しない。実体はmaj9'},
+ 'maj|P5|min':{sym:'9',mode:'Mixolydian'},
+ 'maj|M6|maj':{sym:'13(♭9)',mode:'Altered dom',fix:'原典「maj13(#9)」は誤り：上=A△の第3音は♭9（=C#）であって #9 ではない'},
+ 'maj|M6|min':{sym:'6',mode:'Ionian',fix:'原典「maj13」は7th/9th不在。実体はただのC6'},
+ 'maj|m7|maj':{sym:'11',mode:'Mixolydian'},
+ 'maj|m7|min':{sym:'7(♭9,11)',mode:'HM/Altered'},
+ 'maj|M7|maj':{sym:'maj7(#9,#11)',mode:'Lydian'},
+ 'maj|M7|min':{sym:'maj9(#11)',mode:'Lydian'},
+ // ----- lower = min -----
+ 'min|M2|maj':{sym:'m6/9(#11)',mode:'Dorian/Lydian-m',fix:'原典「m9(#11,13)」は♭7不在。m9ではなくm6/9系'},
+ 'min|M2|min':{sym:'m6/9(add11)',mode:'Dorian',fix:'原典「m11(add13)」は♭7不在。m11ではなくm6/9系'},
+ 'min|M3|maj':{sym:'バイトーナル（♭3/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,fix:'♭3と♮3、5と#5が半音衝突。クリーンなコードではなくバイトーナルなクラスター（上△の色を狙うなら下は省略気味に）'},
+ 'min|M3|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,fix:'原典「m(M7,add5)」：上のm△が♮3を持ち込み♭3と衝突。add5も無意味'},
+ 'min|P4|maj':{sym:'m6(add11)',mode:'Dorian'},
+ 'min|P4|min':{sym:'m(add11,♭13)',mode:'Aeolian',fix:'原典「m11(b13)」は♭7不在。エオリアン色のadd系'},
+ 'min|P5|maj':{sym:'m9(maj7)',mode:'Melodic-m'},
+ 'min|P5|min':{sym:'m9',mode:'Dorian/Aeolian'},
+ 'min|M6|maj':{sym:'バイトーナル（♭9/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,fix:'原典「m(add13,#9)」：実際は♭9＆♮3が混入し衝突。#9ではない'},
+ 'min|M6|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,fix:'上のm△の♮3が♭3と半音衝突（♮13＝ドリアン色を狙うなら下の♭3を省く）'},
+ 'min|m7|maj':{sym:'m11',mode:'Dorian/Aeolian'},
+ 'min|m7|min':{sym:'m7(♭9,11)',mode:'Phrygian'},
+ 'min|M7|maj':{sym:'m(maj7,#11)',mode:'Melodic-m',fix:'原典「m(M7,#9,#11)」の#9(D#)は♭3と同音で冗長。整理'},
+ 'min|M7|min':{sym:'m9(maj7,#11)',mode:'Melodic-m'},
+};
+// Locrian special: dim lower + b2 maj
+const LOCRIAN={sym:'dim(♭9,11,♭13)',mode:'Locrian',warn:1,fix:'原典「X7(b9,11,b13)」は誤り：maj3も♭7も無く属7にならない。ロクリアンのø/dim系クラスター'};
+
+/* ---------- state ---------- */
+let st={rootIdx:0, low:'maj', iv:'M2', upq:'maj'};
+
+/* ---------- build controls ---------- */
+const $=id=>document.getElementById(id);
+const rootSel=$('root');
+ROOTS.forEach((r,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=r[0]; rootSel.appendChild(o); });
+const upivBox=$('upiv');
+IVORDER.forEach(iv=>{ const b=document.createElement('button'); b.className='seg'; b.dataset.v=iv; b.textContent=iv; b.title=IVLABEL[iv]; upivBox.appendChild(b); });
+
+function wireSegs(boxId, key){
+  $(boxId).querySelectorAll('.seg').forEach(b=>{
+    b.addEventListener('click',()=>{ st[key]=b.dataset.v; if(key==='low') normalizeForDim(); render(); });
+  });
+}
+function normalizeForDim(){
+  // dim lower in this manual only pairs with the Locrian b2-maj voicing
+  if(st.low==='dim'){ st.iv='b2'; st.upq='maj'; }
+  else if(st.iv==='b2'){ st.iv='M2'; }
+}
+wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq');
+rootSel.addEventListener('change',()=>{ st.rootIdx=+rootSel.value; render(); });
+
+/* ---------- render ---------- */
+function currentEntry(){
+  if(st.low==='dim') return LOCRIAN;
+  return DATA[`${st.low}|${st.iv}|${st.upq}`];
+}
+function render(){
+  // sync control active states
+  rootSel.value=st.rootIdx;
+  setActive('lowq','low'); setActive('upq','upq');
+  // upiv: show b2 only in dim mode
+  upivBox.querySelectorAll('.seg').forEach(b=>{
+    b.style.display = (st.low==='dim') ? (b.dataset.v==='M2'?'inline-block':'none') : 'inline-block';
+    b.textContent = (st.low==='dim'&&b.dataset.v==='M2') ? 'b2' : b.dataset.v;
+    b.classList.toggle('on', st.low==='dim' ? b.dataset.v==='M2' : b.dataset.v===st.iv);
+  });
+  // disable upq toggle in dim
+  $('upq').querySelectorAll('.seg').forEach(b=> b.style.opacity = st.low==='dim'?'.35':'1');
+
+  const root=rootNote(st.rootIdx);
+  const ivUse = st.low==='dim' ? 'b2' : st.iv;
+  const lower=buildTriad(root, st.low==='dim'?'dim':st.low, null);
+  const upper=buildTriad(root, 'maj', ivUse).map(n=>n); // upper quality:
+  const upTriad=buildTriad(root, st.low==='dim'?'maj':st.upq, ivUse);
+
+  const entry=currentEntry();
+  const upRootName=upTriad[0].name;
+  const upQ = st.low==='dim'?'':(st.upq==='maj'?'':'m');
+
+  // slash notation (lower shows its triad quality: Cm / Cdim)
+  const lowSuffix = st.low==='maj'?'':st.low==='min'?'m':'dim';
+  $('slash').innerHTML=`<span class="u">${upRootName}${upQ}</span><span class="bar">/</span><span class="l">${root.name}${lowSuffix}</span>`;
+  // chord symbol
+  $('sym').textContent = entry ? (entry.raw ? entry.sym : root.name+entry.sym) : '?';
+  const mode=$('mode'); mode.textContent=entry?entry.mode:''; mode.className='modechip'+(entry&&entry.warn?' warn':'');
+
+  // notes + degrees
+  const lowPc=new Set(lower.map(n=>n.pc));
+  const upPc=new Set(upTriad.map(n=>n.pc));
+  const all=[...lower,...upTriad];
+  // dedupe by name, keep ordering by pc-from-root
+  const seen=new Set(); const uniq=[];
+  all.forEach(n=>{ if(!seen.has(n.name)){ seen.add(n.name); uniq.push(n); } });
+  uniq.sort((a,b)=> ((a.pc-root.pc+12)%12) - ((b.pc-root.pc+12)%12) );
+
+  const notesBox=$('notes'); notesBox.innerHTML='';
+  const degBox=$('degs'); degBox.innerHTML='';
+  uniq.forEach(n=>{
+    const inL=lowPc.has(n.pc), inU=upPc.has(n.pc);
+    const cls = inL&&inU ? 'b' : inL ? 'l' : 'u';
+    const p=document.createElement('span'); p.className='pill '+cls; p.textContent=n.name; notesBox.appendChild(p);
+    const d=document.createElement('span'); d.className='pill '+cls; d.textContent=degree(root,n); degBox.appendChild(d);
+  });
+
+  // keyboard
+  drawKeyboard(root, lower, upTriad);
+
+  // caveat
+  const cav=$('caveat');
+  if(entry&&(entry.fix||entry.warn)){
+    cav.className='caveat'+(entry.warn?' warn':'');
+    cav.innerHTML=`<span class="ic">${entry.warn?'⚠️':'✏️'}</span><span>${entry.fix||'バイトーナルな衝突を含みます。'}</span>`;
+  } else { cav.className='caveat'; cav.innerHTML=`<span class="ic">✓</span><span>構成音と表記が一致するクリーンな解釈です。</span>`; }
+
+  syncSysHighlight();
+  saveURL();
+}
+function setActive(boxId,key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===st[key])); }
+
+/* ---------- keyboard ---------- */
+function drawKeyboard(root, lower, upper){
+  const box=$('kbd'); box.innerHTML='';
+  // MIDI: bass root = C3(48)+rootPc ; lower triad stacked up from it ;
+  // upper triad sits an octave above the bass root, stacked from its own root.
+  const base=48+root.pc;
+  const lowMidi=lower.map(n=> base + ((n.pc-root.pc+12)%12));
+  const upRootMidi = base + 12 + ((upper[0].pc-root.pc+12)%12);
+  const upMidi=upper.map(n=> upRootMidi + ((n.pc-upper[0].pc+12)%12));
+  const lowSet=new Set(lowMidi), upSet=new Set(upMidi);
+  window._chordMidi=[...lowMidi,...upMidi];
+
+  const START=48, END=84; // C3..C6
+  const isBlack=pc=>[1,3,6,8,10].includes(((pc)%12+12)%12);
+  const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  let x=0; const whiteW=34;
+  const whites=[]; const blacks=[];
+  for(let m=START;m<=END;m++){
+    const pc=m%12;
+    if(!isBlack(pc)) whites.push(m);
+  }
+  whites.forEach((m,wi)=>{
+    const pc=m%12;
+    const w=document.createElement('div'); w.className='wk';
+    const cls = lowSet.has(m)&&upSet.has(m)?'both':lowSet.has(m)?'low':upSet.has(m)?'up':'';
+    if(cls) w.classList.add(cls);
+    const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent= cls? NAMES[pc] : (pc===0?'C'+(Math.floor(m/12)-1):''); w.appendChild(lbl);
+    box.appendChild(w);
+    // black key after this white if applicable
+    const nb=m+1;
+    if(nb<=END && isBlack(nb%12)){
+      const b=document.createElement('div'); b.className='bk';
+      const bcls=lowSet.has(nb)&&upSet.has(nb)?'both':lowSet.has(nb)?'low':upSet.has(nb)?'up':'';
+      if(bcls){ b.classList.add(bcls); const bl=document.createElement('span'); bl.className='lbl'; bl.textContent=NAMES[nb%12]; b.appendChild(bl); }
+      b.style.left=(wi*whiteW + whiteW - 11)+'px';
+      box.appendChild(b);
+    }
+  });
+}
+
+/* ---------- audio (lightweight) ---------- */
+let AC=null;
+function play(){
+  const mids=window._chordMidi||[]; if(!mids.length) return;
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  const t0=AC.currentTime; const out=AC.createGain(); out.gain.value=0.0001; out.connect(AC.destination);
+  out.gain.setValueAtTime(0.0001,t0); out.gain.exponentialRampToValueAtTime(0.22,t0+0.02);
+  out.gain.exponentialRampToValueAtTime(0.0001,t0+1.8);
+  [...new Set(mids)].forEach((m,i)=>{
+    const o=AC.createOscillator(); o.type='triangle';
+    o.frequency.value=440*Math.pow(2,(m-69)/12);
+    const g=AC.createGain(); g.gain.value=1/Math.max(4,mids.length);
+    o.connect(g); g.connect(out); o.start(t0+i*0.012); o.stop(t0+1.85);
+  });
+}
+$('play').addEventListener('click',play);
+
+/* ---------- system table ---------- */
+let tblMode='maj';
+function buildTblTabs(){
+  const t=$('tblTabs'); t.innerHTML='';
+  [['maj','下＝maj'],['min','下＝min'],['dim','下＝dim（Locrian）']].forEach(([v,lab])=>{
+    const b=document.createElement('button'); b.className='seg'+(v===tblMode?' on':''); b.textContent=lab;
+    b.addEventListener('click',()=>{ tblMode=v; buildTblTabs(); buildSysTable(); }); t.appendChild(b);
+  });
+}
+function buildSysTable(){
+  const tb=$('sysBody'); tb.innerHTML='';
+  const root=rootNote(st.rootIdx);
+  if(tblMode==='dim'){
+    addSysRow(tb,'dim','b2','maj',LOCRIAN,root,'b2 上','maj');
+    return;
+  }
+  IVORDER.forEach(iv=>{
+    ['maj','min'].forEach(upq=>{
+      const e=DATA[`${tblMode}|${iv}|${upq}`];
+      addSysRow(tb,tblMode,iv,upq,e,root,iv+' 上',upq);
+    });
+  });
+}
+function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
+  const upTriad=buildTriad(root,(low==='dim'?'maj':upq),iv);
+  const lower=buildTriad(root,(low==='dim'?'dim':low),null);
+  const lowPc=new Set(lower.map(n=>n.pc));
+  const all=[...lower,...upTriad]; const seen=new Set(); const uniq=[];
+  all.forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name); uniq.push(n);} });
+  uniq.sort((a,b)=>((a.pc-root.pc+12)%12)-((b.pc-root.pc+12)%12));
+  const degs=uniq.map(n=>degree(root,n)).join(' ');
+  const tr=document.createElement('tr');
+  tr.dataset.low=low; tr.dataset.iv=iv; tr.dataset.upq=upq;
+  tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td>
+    <td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span>${e.fix?`<span class="corr" title="${e.fix.replace(/"/g,'&quot;')}">修正</span>`:''}</td>
+    <td class="degs">${degs}</td>
+    <td class="md${e.warn?' warn':''}">${e.mode}</td>`;
+  tr.addEventListener('click',()=>{ st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); document.querySelector('.card').scrollIntoView({behavior:'smooth',block:'start'}); });
+  tb.appendChild(tr);
+}
+function syncSysHighlight(){
+  document.querySelectorAll('#sysBody tr').forEach(tr=>{
+    const on = tr.dataset.low===st.low && (st.low==='dim' || (tr.dataset.iv===st.iv && tr.dataset.upq===st.upq));
+    tr.style.background = on ? 'rgba(110,168,254,.10)' : '';
+  });
+}
+
+/* ---------- modes ---------- */
+const MODES={
+  Lydian:{desc:'明るく浮遊する #11 が特徴。メジャー系で最も色彩的。',combos:[['maj','M2','maj'],['maj','M7','maj'],['maj','M7','min']]},
+  Ionian:{desc:'純メジャー。素直な響き。属和音的な誤読に注意（♭7は無い）。',combos:[['maj','P5','maj'],['maj','M3','min'],['maj','M6','min']]},
+  Mixolydian:{desc:'♭7 を持つドミナント系。9th/11th が自然に乗る。',combos:[['maj','P5','min'],['maj','m7','maj']]},
+  Dorian:{desc:'マイナーだが ♮13（長6度）が明るい。ジャズ／モーダルの定番。',combos:[['min','m7','maj'],['min','P4','maj'],['min','M2','min']]},
+  Aeolian:{desc:'ナチュラルマイナー。♭13（♭6）が陰influence。♮13は使わない。',combos:[['min','P4','min'],['min','m7','maj']]},
+  Phrygian:{desc:'♭9（♭2）が強い緊張感。スパニッシュ／ダーク。',combos:[['min','m7','min']]},
+  Locrian:{desc:'♭5 を持つ唯一の減三和音系。不安定なクラスター。',combos:[['dim','b2','maj']]},
+  'Melodic-m':{desc:'メロディックマイナー。m(maj7) 系の洗練された緊張。',combos:[['min','P5','maj'],['min','M7','min'],['min','M7','maj']]},
+};
+let modeCur='Lydian';
+function buildModeTabs(){
+  const t=$('modeTabs'); t.innerHTML='';
+  Object.keys(MODES).forEach(m=>{
+    const b=document.createElement('button'); b.className='seg'+(m===modeCur?' on':''); b.textContent=m;
+    b.addEventListener('click',()=>{ modeCur=m; buildModeTabs(); buildModeBody(); }); t.appendChild(b);
+  });
+}
+function buildModeBody(){
+  const root=rootNote(st.rootIdx);
+  const box=$('modeBody'); const md=MODES[modeCur];
+  box.innerHTML=`<p class="mode-desc">${md.desc}</p>`;
+  md.combos.forEach(([low,iv,upq])=>{
+    const e = low==='dim'?LOCRIAN:DATA[`${low}|${iv}|${upq}`];
+    const upTriad=buildTriad(root,(low==='dim'?'maj':upq),iv);
+    const upQ=low==='dim'?'':(upq==='maj'?'':'m');
+    const lowName=root.name+(low==='maj'?'':low==='min'?'m':'dim');
+    const c=document.createElement('div'); c.className='combo';
+    c.innerHTML=`<span class="cslash"><span class="u">${upTriad[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>
+      <span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span>
+      <span class="cnote">${e.warn?'⚠ ':''}${e.mode}</span>`;
+    c.addEventListener('click',()=>{ st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); document.querySelector('.card').scrollIntoView({behavior:'smooth',block:'start'}); });
+    box.appendChild(c);
+  });
+}
+
+/* ---------- URL persist ---------- */
+function saveURL(){
+  const p=new URLSearchParams({r:st.rootIdx,l:st.low,i:st.iv,q:st.upq});
+  history.replaceState(null,'','?'+p.toString());
+}
+function loadURL(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('r')) st.rootIdx=Math.min(11,Math.max(0,+p.get('r')||0));
+  if(p.has('l')&&['maj','min','dim'].includes(p.get('l'))) st.low=p.get('l');
+  if(p.has('i')) st.iv=p.get('i');
+  if(p.has('q')&&['maj','min'].includes(p.get('q'))) st.upq=p.get('q');
+  normalizeForDim();
+}
+
+/* ---------- init ---------- */
+loadURL();
+buildTblTabs(); buildSysTable();
+buildModeTabs(); buildModeBody();
+render();
+</script>
+</body>
+</html>
