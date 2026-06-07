@@ -72,7 +72,8 @@
   .keyfit.in{color:var(--both); background:rgba(67,196,106,.14)}
   .keyfit.out{color:var(--muted); background:rgba(139,147,163,.13)}
 
-  .kbd{position:relative; height:112px; margin-top:1.1rem; user-select:none; overflow-x:auto; padding-bottom:4px}
+  .kbdrow{margin-top:1.1rem}
+  .kbd{position:relative; height:112px; user-select:none; overflow-x:auto; padding-bottom:4px}
   .kbd-inner{position:relative; height:108px; display:flex}
   .wk{position:relative; width:32px; flex:none; height:108px; background:#f3f4f7; border:1px solid #2a2f3a; border-top:none; border-radius:0 0 5px 5px; margin-right:-1px}
   .bk{position:absolute; top:0; width:21px; height:67px; background:#1a1d24; border:1px solid #000; border-radius:0 0 4px 4px; z-index:2}
@@ -84,6 +85,11 @@
 
   .analysis{margin-top:1rem; display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1.4rem; align-items:start}
   @media(max-width:560px){ .analysis{grid-template-columns:1fr} }
+  @media(min-width:1000px){
+    .kbdrow{display:flex; gap:1.6rem; align-items:center}
+    .kbdrow .kbd{flex:0 1 auto; min-width:0}
+    .kbdrow .analysis{flex:1 1 200px; margin-top:0; grid-template-columns:1fr; gap:.55rem}
+  }
   .arow{display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap}
   .arow .k{font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); width:4.6rem; flex:none}
   .pills{display:flex; flex-wrap:wrap; gap:.3rem}
@@ -96,7 +102,9 @@
   .orch-hint{margin-top:.55rem; font-size:.8rem; color:var(--muted); line-height:1.5}
   .orch-hint b{color:var(--text); font-weight:700}
 
-  .herobar{margin-top:1.1rem; display:flex; gap:.7rem; align-items:center; flex-wrap:wrap}
+  .herobar{margin-top:1.3rem; display:flex; gap:.8rem; align-items:flex-end; flex-wrap:wrap}
+  .herobar .btn{height:2.1rem}
+  .legend{align-self:center}
   .btn{background:var(--accent); color:#0f1115; border:none; border-radius:9px; padding:.45rem 1rem; font:inherit; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem}
   .btn.ghost{background:none; color:var(--text); border:1px solid var(--border2)}
   .btn.ghost:hover{border-color:var(--accent)}
@@ -198,14 +206,13 @@
     </div>
   </div>
 
-  <div class="kbd"><div class="kbd-inner" id="kbd"></div></div>
-
-  <div class="analysis">
-    <div class="arow"><span class="k">構成音</span><div class="pills" id="notes"></div></div>
-    <div class="arow"><span class="k">度数</span><div class="pills" id="degs"></div></div>
+  <div class="kbdrow">
+    <div class="kbd"><div class="kbd-inner" id="kbd"></div></div>
+    <div class="analysis">
+      <div class="arow"><span class="k">構成音</span><div class="pills" id="notes"></div></div>
+      <div class="arow"><span class="k">度数</span><div class="pills" id="degs"></div></div>
+    </div>
   </div>
-
-  <div class="caveat" id="caveat"></div>
 
   <div class="herobar">
     <div class="cgroup"><span class="clabel">ルート (X)</span><div class="segs"><select id="root" class="seg"></select></div></div>
@@ -506,14 +513,6 @@ function render(){
     const d=document.createElement('span'); d.className='pill '+cls; d.textContent=degree(root,n); degBox.appendChild(d); });
 
   drawKeyboard(root, lower, upTriad);
-
-  // caveat — facts only (structural). No sound/placement prose; the user judges those.
-  const cav=$('caveat');
-  if(single){
-    cav.style.display=''; cav.className='caveat'; cav.innerHTML=`<span class="ic">🎚️</span><span>単音ベース：下の 3rd・5th を省いた開いた声部。</span>`;
-  } else if(entry&&entry.warn){
-    cav.style.display=''; cav.className='caveat warn'; cav.innerHTML=`<span class="ic">⚠️</span><span>${entry.note||'バイトーナル'}</span>`;
-  } else { cav.style.display='none'; cav.innerHTML=''; }
 
   saveURL();
 }
