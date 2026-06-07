@@ -82,6 +82,7 @@
   .wk{position:relative; width:32px; flex:none; height:108px; background:#f3f4f7; border:1px solid #2a2f3a; border-top:none; border-radius:0 0 5px 5px; margin-right:-1px}
   .bk{position:absolute; top:0; width:21px; height:67px; background:#1a1d24; border:1px solid #000; border-radius:0 0 4px 4px; z-index:2}
   .wk.low,.bk.low{background:var(--low)} .wk.up,.bk.up{background:var(--up)} .wk.both,.bk.both{background:var(--both)}
+  .wk.muted,.bk.muted{opacity:.32}
   .wk .lbl{position:absolute; bottom:5px; left:0; right:0; text-align:center; font-size:.58rem; font-weight:700; color:#3a3f4a}
   .wk.low .lbl,.wk.up .lbl,.wk.both .lbl{color:#0f1115}
   .bk .lbl{position:absolute; bottom:4px; left:0; right:0; text-align:center; font-size:.52rem; font-weight:700; color:#c9cdd6}
@@ -243,6 +244,12 @@
         <button class="seg" data-v="stack" data-i18n="reg_stack">積む</button>
       </div>
     </div>
+    <div class="cgroup"><span class="clabel" data-i18n="hb_dbl">重複音</span>
+      <div class="segs" id="dblmode">
+        <button class="seg" data-v="on" data-i18n="dbl_on">あり</button>
+        <button class="seg" data-v="off" data-i18n="dbl_off">なし</button>
+      </div>
+    </div>
     <button class="btn" id="play" data-i18n="play">▶ 試聴</button>
     <span class="legend">
       <span data-i18n-html="lg_low"><i style="background:var(--low)"></i>下</span>
@@ -392,7 +399,8 @@ const I18N={
     f_key:'曲の土台 — キー', f_scale:'スケール', linkchip:'🔗 サブベース連動',
     a_notes:'構成音', a_degs:'度数',
     hb_root:'ルート (X)', hb_bass:'下の鳴らし方', bass_triad:'三和音', bass_single:'単音ベース',
-    hb_reg:'上の音域', reg_level:'揃える', reg_stack:'積む', play:'▶ 試聴',
+    hb_reg:'上の音域', reg_level:'揃える', reg_stack:'積む',
+    hb_dbl:'重複音', dbl_on:'あり', dbl_off:'なし', play:'▶ 試聴',
     lg_low:'<i style="background:var(--low)"></i>下', lg_up:'<i style="background:var(--up)"></i>上', lg_both:'<i style="background:var(--both)"></i>共有',
     tab_key:'キーで探す', tab_build:'組み立てる', tab_color:'色（度数）で', tab_name:'コード名で', tab_upper:'上で探す', tab_modulate:'転調', tab_mode:'モードで', tab_list:'一覧',
     hint_key:'土台のキーに収まる拡張ボイシングを度数別に表示します。チップをクリックで上の結果へ。',
@@ -439,7 +447,8 @@ const I18N={
     f_key:'Foundation — Key', f_scale:'Scale', linkchip:'🔗 Sub-Bass linked',
     a_notes:'Notes', a_degs:'Degrees',
     hb_root:'Root (X)', hb_bass:'Lower voicing', bass_triad:'Triad', bass_single:'Bass note',
-    hb_reg:'Upper register', reg_level:'Level', reg_stack:'Stack', play:'▶ Audition',
+    hb_reg:'Upper register', reg_level:'Level', reg_stack:'Stack',
+    hb_dbl:'Doublings', dbl_on:'On', dbl_off:'Off', play:'▶ Audition',
     lg_low:'<i style="background:var(--low)"></i>Lower', lg_up:'<i style="background:var(--up)"></i>Upper', lg_both:'<i style="background:var(--both)"></i>Shared',
     tab_key:'By key', tab_build:'Build', tab_color:'By colour', tab_name:'By name', tab_upper:'By upper', tab_modulate:'Modulate', tab_mode:'By mode', tab_list:'Table',
     hint_key:'Voicings that fit the foundation key, grouped by scale degree. Click a chip to load it above.',
@@ -597,7 +606,7 @@ const MODES={
 };
 
 /* ---------- state ---------- */
-let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', bass:'triad', reg:'level', tab:'key', keyPc:null, keyScale:'', upRoot:null, upQual:'min', modTarget:null, modBass:null};
+let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', bass:'triad', reg:'level', dbl:'on', tab:'key', keyPc:null, keyScale:'', upRoot:null, upQual:'min', modTarget:null, modBass:null};
 const $=id=>document.getElementById(id);
 
 /* ---------- controls ---------- */
@@ -611,13 +620,13 @@ function applyIvTitles(){ upivBox.querySelectorAll('.seg').forEach(b=>{ if(IVLAB
 function normalizeForDim(){ if(st.low==='dim'){ st.iv='b2'; st.upq='maj'; } else if(st.iv==='b2'){ st.iv='M2'; } }
 function setActive(boxId,key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===st[key])); }
 function wireSegs(boxId, key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ st[key]=b.dataset.v; if(key==='low') normalizeForDim(); render(); })); }
-wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq'); wireSegs('bassmode','bass'); wireSegs('regmode','reg');
+wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq'); wireSegs('bassmode','bass'); wireSegs('regmode','reg'); wireSegs('dblmode','dbl');
 rootSel.addEventListener('change',()=>{ st.rootName=rootSel.value; render(); refreshTab(); });
 
 /* ---------- render hero ---------- */
 function currentEntry(){ return st.low==='dim' ? LOCRIAN : DATA[`${st.low}|${st.iv}|${st.upq}`]; }
 function render(){
-  syncRootSelect(); setActive('lowq','low'); setActive('upq','upq'); setActive('bassmode','bass'); setActive('regmode','reg');
+  syncRootSelect(); setActive('lowq','low'); setActive('upq','upq'); setActive('bassmode','bass'); setActive('regmode','reg'); setActive('dblmode','dbl');
   upivBox.querySelectorAll('.seg').forEach(b=>{
     b.style.display = (st.low==='dim') ? (b.dataset.v==='M2'?'inline-block':'none') : 'inline-block';
     b.textContent = (st.low==='dim'&&b.dataset.v==='M2') ? 'b2' : b.dataset.v;
@@ -680,8 +689,16 @@ function drawKeyboard(root, lower, upper){
   // chords) so clicking through a progression stays coherent; 'stack' is the literal stack.
   const upRootMidi = st.reg==='level' ? 60 + upper[0].pc : base + 12 + ((upper[0].pc-root.pc+12)%12);
   const upMidi=upper.map(n=> upRootMidi + ((n.pc-upper[0].pc+12)%12));
-  const lowSet=new Set(lowMidi), upSet=new Set(upMidi);
-  window._chordMidi=[...lowMidi,...upMidi];
+  const lowSet=new Set(lowMidi), upSet=new Set(upMidi);   // colouring uses the full voicing
+  // doublings A/B: when 'off', keep only the lowest copy of each pitch class (preserves the
+  // bass, so the function is unchanged) and ghost the higher octave copies; they won't sound.
+  const allMidi=[...lowMidi,...upMidi].sort((a,b)=>a-b);
+  const playMidi=[], mutedSet=new Set(), seenPc=new Set(), seenM=new Set();
+  for(const m of allMidi){ const pc=((m%12)+12)%12;
+    if(seenM.has(m)) continue;                                  // exact unison = one key
+    if(st.dbl==='off' && seenPc.has(pc)){ mutedSet.add(m); continue; }
+    seenM.add(m); seenPc.add(pc); playMidi.push(m); }
+  window._chordMidi=playMidi;
   const START=48, END=84, whiteW=32;
   const isBlack=pc=>[1,3,6,8,10].includes(((pc)%12+12)%12);
   const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -690,11 +707,12 @@ function drawKeyboard(root, lower, upper){
     const pc=m%12; const w=document.createElement('div'); w.className='wk';
     const cls = lowSet.has(m)&&upSet.has(m)?'both':lowSet.has(m)?'low':upSet.has(m)?'up':'';
     if(cls) w.classList.add(cls);
+    if(mutedSet.has(m)) w.classList.add('muted');
     const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent= cls?NAMES[pc]:(pc===0?'C'+(Math.floor(m/12)-1):''); w.appendChild(lbl); box.appendChild(w);
     const nb=m+1;
     if(nb<=END && isBlack(nb%12)){ const b=document.createElement('div'); b.className='bk';
       const bcls=lowSet.has(nb)&&upSet.has(nb)?'both':lowSet.has(nb)?'low':upSet.has(nb)?'up':'';
-      if(bcls){ b.classList.add(bcls); const bl=document.createElement('span'); bl.className='lbl'; bl.textContent=NAMES[nb%12]; b.appendChild(bl); }
+      if(bcls){ b.classList.add(bcls); if(mutedSet.has(nb)) b.classList.add('muted'); const bl=document.createElement('span'); bl.className='lbl'; bl.textContent=NAMES[nb%12]; b.appendChild(bl); }
       b.style.left=(wi*whiteW + whiteW - 10.5)+'px'; box.appendChild(b);
     }
   });
@@ -1092,7 +1110,7 @@ document.getElementById('langToggle').addEventListener('click', e=>{ const lang=
 /* ---------- URL ---------- */
 function saveURL(){ const p=new URLSearchParams();
   p.set('x',st.rootName); p.set('l',st.low); p.set('i',st.iv); p.set('q',st.upq);
-  if(st.bass==='single') p.set('b','1'); if(st.reg==='stack') p.set('g','stack'); if(st.tab&&st.tab!=='key') p.set('t',st.tab);
+  if(st.bass==='single') p.set('b','1'); if(st.reg==='stack') p.set('g','stack'); if(st.dbl==='off') p.set('d','off'); if(st.tab&&st.tab!=='key') p.set('t',st.tab);
   if(keyActive()){ p.set('root',ROOT_SHARP[st.keyPc]); p.set('scale',st.keyScale); }
   if(st.tab==='modulate' && st.modTarget) p.set('mt', st.modTarget.pc+'.'+st.modTarget.scale);
   history.replaceState(null,'','?'+p.toString());
@@ -1111,6 +1129,7 @@ function loadURL(){ const p=new URLSearchParams(location.search);
   if(p.has('q')&&['maj','min'].includes(p.get('q'))) st.upq=p.get('q');
   if(p.get('b')==='1') st.bass='single';
   if(p.get('g')==='stack') st.reg='stack';
+  if(p.get('d')==='off') st.dbl='off';
   if(p.has('mt')){ const [mp,ms]=p.get('mt').split('.'); if(SCALES[ms]) st.modTarget={pc:+mp,scale:ms}; }
   if(p.has('t')&&['key','build','color','name','upper','modulate','mode','list'].includes(p.get('t'))) st.tab=p.get('t');
   else if(st.keyPc!=null) st.tab='key';
