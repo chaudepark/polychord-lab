@@ -24,319 +24,295 @@
   :root{
     --bg:#0f1115; --card:#181b22; --card2:#1d2129; --border:#262b36; --border2:#2c3240;
     --text:#e6e9ef; --muted:#8b93a3; --faint:#5c6373;
-    --low:#6ea8fe;       /* 下トライアド */
-    --up:#e0a23a;        /* 上トライアド */
-    --both:#43c46a;      /* 共有音 */
-    --warn:#e0533a;      /* 衝突・注意 */
-    --accent:#6ea8fe;
+    --low:#6ea8fe; --up:#e0a23a; --both:#43c46a; --warn:#e0533a; --accent:#6ea8fe;
   }
   *{box-sizing:border-box}
   body{
-    margin:0; padding:1.8rem 1.1rem 4rem;
+    margin:0; padding:1.4rem 1.1rem 4rem;
     background:radial-gradient(120% 80% at 75% -10%, #1a1d27 0%, var(--bg) 55%);
-    color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Helvetica Neue",Arial,sans-serif;
+    color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Helvetica Neue",Arial,sans-serif;
     -webkit-font-smoothing:antialiased; line-height:1.55;
   }
-  .wrap{max-width:1080px; margin:0 auto}
-  header{margin-bottom:1.6rem}
-  h1{font-size:1.6rem; font-weight:800; margin:0 0 .35rem; letter-spacing:.01em}
-  h1 .tag{font-size:.62rem; font-weight:700; vertical-align:middle; color:var(--up); border:1px solid var(--up); border-radius:999px; padding:.12rem .5rem; margin-left:.55rem; letter-spacing:.04em}
-  .lead{color:var(--muted); font-size:.92rem; margin:0; max-width:70ch}
-  h2{font-size:1.12rem; font-weight:700; margin:2.4rem 0 1rem; display:flex; align-items:center; gap:.5rem}
-  h2::before{content:""; width:4px; height:1.05em; background:var(--accent); border-radius:2px}
+  .wrap{max-width:1040px; margin:0 auto}
+  header{margin-bottom:1.2rem}
+  h1{font-size:1.5rem; font-weight:800; margin:0 0 .25rem; letter-spacing:.01em}
+  h1 .tag{font-size:.6rem; font-weight:700; vertical-align:middle; color:var(--up); border:1px solid var(--up); border-radius:999px; padding:.1rem .45rem; margin-left:.5rem}
+  .lead{color:var(--muted); font-size:.86rem; margin:0; max-width:72ch}
 
-  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.4rem 1.3rem}
-
-  /* ---- controls ---- */
-  .ctrls{display:flex; flex-wrap:wrap; gap:1.3rem 1.8rem; align-items:flex-end}
-  .cgroup{display:flex; flex-direction:column; gap:.45rem}
-  .clabel{font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted)}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.2rem 1.2rem}
+  .cgroup{display:flex; flex-direction:column; gap:.4rem}
+  .clabel{font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
   .segs{display:inline-flex; gap:.25rem; flex-wrap:wrap}
   .seg{background:var(--card2); border:1px solid var(--border2); color:var(--text); font:inherit; font-weight:700;
-       font-size:.85rem; padding:.34rem .62rem; border-radius:9px; cursor:pointer; transition:border-color .12s, background .12s; font-variant-numeric:tabular-nums}
+       font-size:.84rem; padding:.32rem .6rem; border-radius:9px; cursor:pointer; transition:border-color .12s, background .12s; font-variant-numeric:tabular-nums}
   .seg:hover{border-color:var(--accent)}
   .seg.on{background:var(--accent); border-color:var(--accent); color:#0f1115}
   .seg.dim.on{background:var(--warn); border-color:var(--warn)}
+  .seg.chip.on{background:var(--accent); border-color:var(--accent); color:#0f1115}
   select.seg{padding-right:1.4rem}
 
-  /* ---- result ---- */
-  .result{margin-top:1.5rem; display:grid; grid-template-columns:auto 1fr; gap:1.2rem 1.6rem; align-items:center}
-  @media(max-width:640px){ .result{grid-template-columns:1fr} }
-  .slash{font-size:2.7rem; font-weight:800; line-height:1; letter-spacing:.01em; white-space:nowrap}
-  .slash .u{color:var(--up)} .slash .l{color:var(--low)} .slash .bar{color:var(--faint); font-weight:400; margin:0 .12em}
-  .rmeta{display:flex; flex-direction:column; gap:.5rem}
-  .sym{font-size:1.5rem; font-weight:800; font-variant-numeric:tabular-nums}
-  .modechip{align-self:flex-start; font-size:.74rem; font-weight:700; color:var(--accent); background:rgba(110,168,254,.13); border-radius:6px; padding:.14rem .5rem}
+  /* ---- foundation bar ---- */
+  .foundation{display:flex; flex-wrap:wrap; gap:1rem 1.6rem; align-items:flex-end}
+  .foundation .lbl-strong{font-size:.7rem;font-weight:800;color:var(--text);letter-spacing:.04em}
+  .foundation .fnote{flex-basis:100%; font-size:.76rem; color:var(--faint); margin-top:.1rem}
+  #subLink{margin-left:auto}
+
+  /* ---- hero result (sticky) ---- */
+  .hero{margin-top:1rem}
+  @media(min-width:760px){ .hero{position:sticky; top:.5rem; z-index:20; box-shadow:0 10px 30px -18px #000} }
+  .result{display:grid; grid-template-columns:auto 1fr; gap:1rem 1.4rem; align-items:center}
+  @media(max-width:560px){ .result{grid-template-columns:1fr} }
+  .slash{font-size:2.5rem; font-weight:800; line-height:1; white-space:nowrap}
+  .slash .u{color:var(--up)} .slash .l{color:var(--low)} .slash .bar{color:var(--faint); font-weight:400; margin:0 .1em}
+  .rmeta{display:flex; flex-direction:column; gap:.45rem}
+  .sym{font-size:1.45rem; font-weight:800; font-variant-numeric:tabular-nums}
+  .chips{display:flex; gap:.45rem; flex-wrap:wrap; align-items:center}
+  .modechip{font-size:.72rem; font-weight:700; color:var(--accent); background:rgba(110,168,254,.13); border-radius:6px; padding:.12rem .48rem}
   .modechip.warn{color:var(--warn); background:rgba(224,83,58,.13)}
-
-  /* ---- notes / degrees ---- */
-  .analysis{margin-top:1.4rem; display:flex; flex-direction:column; gap:.6rem}
-  .arow{display:flex; align-items:baseline; gap:.7rem; flex-wrap:wrap}
-  .arow .k{font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); width:5.2rem; flex:none}
-  .pills{display:flex; flex-wrap:wrap; gap:.32rem}
-  .pill{font-size:.85rem; font-weight:700; border-radius:7px; padding:.18rem .46rem; font-variant-numeric:tabular-nums; border:1px solid var(--border2); background:var(--card2)}
-  .pill.l{border-color:var(--low); color:var(--low)}
-  .pill.u{border-color:var(--up); color:var(--up)}
-  .pill.b{border-color:var(--both); color:var(--both)}
-  .pill .d{font-size:.72em; color:var(--muted); margin-left:.3rem; font-weight:600}
-
-  .caveat{margin-top:1.1rem; font-size:.86rem; color:var(--muted); display:flex; gap:.5rem; align-items:flex-start; line-height:1.55}
-  .caveat .ic{flex:none; margin-top:.05rem}
-  .caveat.warn{color:#f0b3a6}
-
-  .actions{margin-top:1.2rem; display:flex; gap:.6rem; align-items:center; flex-wrap:wrap}
-  .btn{background:var(--accent); color:#0f1115; border:none; border-radius:9px; padding:.5rem 1.1rem; font:inherit; font-weight:700; cursor:pointer}
-  .btn.ghost{background:none; color:var(--text); border:1px solid var(--border2)}
-  .btn.ghost:hover{border-color:var(--accent)}
-  .legend{font-size:.74rem; color:var(--muted); display:flex; gap:.9rem; flex-wrap:wrap; margin-left:auto}
-  .legend i{display:inline-block; width:.7rem; height:.7rem; border-radius:3px; vertical-align:-1px; margin-right:.3rem}
-
-  /* ---- explorer top / direction ---- */
-  .ex-top{display:flex; flex-wrap:wrap; gap:1.2rem 1.8rem; align-items:flex-end; margin-bottom:1.5rem; padding-bottom:1.3rem; border-bottom:1px solid var(--border)}
-  .rev-sub{margin-bottom:1.3rem}
-  #revColorUI,#revNameUI{display:flex; flex-wrap:wrap; gap:1.3rem 1.8rem; align-items:flex-start}
-  #revColorUI[hidden],#revNameUI[hidden]{display:none}
-  .seg.chip.on{background:var(--accent); border-color:var(--accent); color:#0f1115}
-  .rev-results{margin-top:1.5rem; display:flex; flex-direction:column; gap:.5rem}
-  .rev-empty{color:var(--muted); font-size:.88rem; padding:.7rem 0}
-  .rev-count{font-size:.72rem; color:var(--muted); margin:.2rem 0 .2rem}
-  .combo .cnote{font-variant-numeric:tabular-nums}
-
-  /* ---- key-fit chip + key view ---- */
-  .keyfit{font-size:.72rem; font-weight:700; border-radius:6px; padding:.14rem .5rem}
+  .keyfit{font-size:.7rem; font-weight:700; border-radius:6px; padding:.12rem .48rem}
   .keyfit.in{color:var(--both); background:rgba(67,196,106,.14)}
   .keyfit.out{color:var(--muted); background:rgba(139,147,163,.13)}
-  .key-view{margin-top:1rem; display:flex; flex-direction:column; gap:.9rem}
-  .key-deg-h{font-size:.8rem; color:var(--muted); font-weight:700; margin-bottom:.45rem}
-  .key-deg-h b{color:var(--accent); font-size:1.05em; margin-right:.35rem; font-variant-numeric:tabular-nums}
-  .key-chips{display:flex; flex-wrap:wrap; gap:.5rem}
-  .key-chip{display:inline-flex; flex-direction:column; align-items:flex-start; gap:.12rem; background:var(--card2); border:1px solid var(--border2); border-radius:9px; padding:.4rem .6rem; cursor:pointer; font:inherit; color:var(--text)}
-  .key-chip:hover{border-color:var(--accent)}
-  .key-chip.warn{border-color:rgba(224,83,58,.5)}
-  .key-chip .kc-slash{font-weight:800; font-size:.9rem}
-  .key-chip .kc-slash .u{color:var(--up)} .key-chip .kc-slash .l{color:var(--low)}
-  .key-chip .kc-sym{font-size:.76rem; color:var(--muted); font-variant-numeric:tabular-nums}
 
-  /* ---- keyboard ---- */
-  .kbd{position:relative; height:120px; margin-top:1.4rem; user-select:none; overflow-x:auto; padding-bottom:4px}
-  .kbd-inner{position:relative; height:116px; display:flex}
-  .wk{position:relative; width:34px; flex:none; height:116px; background:#f3f4f7; border:1px solid #2a2f3a; border-top:none; border-radius:0 0 5px 5px; margin-right:-1px}
-  .bk{position:absolute; top:0; width:22px; height:72px; background:#1a1d24; border:1px solid #000; border-radius:0 0 4px 4px; z-index:2}
+  .kbd{position:relative; height:112px; margin-top:1.1rem; user-select:none; overflow-x:auto; padding-bottom:4px}
+  .kbd-inner{position:relative; height:108px; display:flex}
+  .wk{position:relative; width:32px; flex:none; height:108px; background:#f3f4f7; border:1px solid #2a2f3a; border-top:none; border-radius:0 0 5px 5px; margin-right:-1px}
+  .bk{position:absolute; top:0; width:21px; height:67px; background:#1a1d24; border:1px solid #000; border-radius:0 0 4px 4px; z-index:2}
   .wk.low,.bk.low{background:var(--low)} .wk.up,.bk.up{background:var(--up)} .wk.both,.bk.both{background:var(--both)}
-  .wk .lbl{position:absolute; bottom:5px; left:0; right:0; text-align:center; font-size:.6rem; font-weight:700; color:#3a3f4a; font-variant-numeric:tabular-nums}
+  .wk .lbl{position:absolute; bottom:5px; left:0; right:0; text-align:center; font-size:.58rem; font-weight:700; color:#3a3f4a}
   .wk.low .lbl,.wk.up .lbl,.wk.both .lbl{color:#0f1115}
-  .bk .lbl{position:absolute; bottom:4px; left:0; right:0; text-align:center; font-size:.54rem; font-weight:700; color:#c9cdd6}
+  .bk .lbl{position:absolute; bottom:4px; left:0; right:0; text-align:center; font-size:.52rem; font-weight:700; color:#c9cdd6}
   .bk.low .lbl,.bk.up .lbl,.bk.both .lbl{color:#0f1115}
 
-  /* ---- system table ---- */
-  .tbl-tabs{display:flex; gap:.4rem; margin-bottom:.9rem; flex-wrap:wrap}
+  .analysis{margin-top:1.1rem; display:flex; flex-direction:column; gap:.55rem}
+  .arow{display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap}
+  .arow .k{font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); width:4.6rem; flex:none}
+  .pills{display:flex; flex-wrap:wrap; gap:.3rem}
+  .pill{font-size:.84rem; font-weight:700; border-radius:7px; padding:.16rem .44rem; font-variant-numeric:tabular-nums; border:1px solid var(--border2); background:var(--card2)}
+  .pill.l{border-color:var(--low); color:var(--low)} .pill.u{border-color:var(--up); color:var(--up)} .pill.b{border-color:var(--both); color:var(--both)}
+
+  .caveat{margin-top:.9rem; font-size:.84rem; color:var(--muted); display:flex; gap:.5rem; align-items:flex-start; line-height:1.5}
+  .caveat .ic{flex:none; margin-top:.05rem}
+  .caveat.warn{color:#f0b3a6}
+  .orch-hint{margin-top:.55rem; font-size:.8rem; color:var(--muted); line-height:1.5}
+  .orch-hint b{color:var(--text); font-weight:700}
+
+  .herobar{margin-top:1.1rem; display:flex; gap:.7rem; align-items:center; flex-wrap:wrap}
+  .btn{background:var(--accent); color:#0f1115; border:none; border-radius:9px; padding:.45rem 1rem; font:inherit; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem}
+  .btn.ghost{background:none; color:var(--text); border:1px solid var(--border2)}
+  .btn.ghost:hover{border-color:var(--accent)}
+  .legend{font-size:.72rem; color:var(--muted); display:flex; gap:.8rem; flex-wrap:wrap; margin-left:auto}
+  .legend i{display:inline-block; width:.7rem; height:.7rem; border-radius:3px; vertical-align:-1px; margin-right:.28rem}
+
+  /* ---- picker (tabs) ---- */
+  .picker{margin-top:1.1rem}
+  .tabbar{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1.1rem}
+  .tabpanel[hidden]{display:none}
+  .pickrow{display:flex; flex-wrap:wrap; gap:1.1rem 1.6rem; align-items:flex-start}
+  .hint{color:var(--muted); font-size:.84rem; margin:.2rem 0 1rem}
+
+  .results{margin-top:1.2rem; display:flex; flex-direction:column; gap:.5rem}
+  .empty{color:var(--muted); font-size:.86rem; padding:.6rem 0}
+  .count{font-size:.7rem; color:var(--muted)}
+  .combo{display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; background:var(--card2); border:1px solid var(--border2); border-radius:10px; padding:.5rem .8rem; cursor:pointer}
+  .combo:hover{border-color:var(--accent)}
+  .combo .cslash{font-weight:800; font-size:1.02rem; white-space:nowrap}
+  .combo .cslash .u{color:var(--up)} .combo .cslash .l{color:var(--low)}
+  .combo .arr{color:var(--faint)} .combo .csym{font-weight:800; font-variant-numeric:tabular-nums}
+  .combo .cnote{color:var(--muted); font-size:.78rem; margin-left:auto; font-variant-numeric:tabular-nums}
+
+  /* key palette */
+  .key-deg{margin-bottom:.9rem}
+  .key-deg-h{font-size:.78rem; color:var(--muted); font-weight:700; margin-bottom:.4rem}
+  .key-deg-h b{color:var(--accent); font-size:1.05em; margin-right:.35rem; font-variant-numeric:tabular-nums}
+  .key-chips{display:flex; flex-wrap:wrap; gap:.5rem}
+  .key-chip{display:inline-flex; flex-direction:column; align-items:flex-start; gap:.12rem; background:var(--card2); border:1px solid var(--border2); border-radius:9px; padding:.38rem .58rem; cursor:pointer; font:inherit; color:var(--text)}
+  .key-chip:hover{border-color:var(--accent)}
+  .key-chip.warn{border-color:rgba(224,83,58,.5)}
+  .key-chip .kc-slash{font-weight:800; font-size:.88rem}
+  .key-chip .kc-slash .u{color:var(--up)} .key-chip .kc-slash .l{color:var(--low)}
+  .key-chip .kc-sym{font-size:.74rem; color:var(--muted); font-variant-numeric:tabular-nums}
+
+  /* table */
   .tbl-wrap{overflow-x:auto}
-  table.sys{width:100%; border-collapse:collapse; font-size:.86rem; min-width:560px}
-  table.sys th{text-align:left; font-size:.64rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; padding:.4rem .55rem; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card)}
-  table.sys td{padding:.45rem .55rem; border-bottom:1px solid #20242e; vertical-align:top}
-  table.sys tr{cursor:pointer}
+  table.sys{width:100%; border-collapse:collapse; font-size:.85rem; min-width:520px}
+  table.sys th{text-align:left; font-size:.62rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; padding:.4rem .5rem; border-bottom:1px solid var(--border)}
+  table.sys td{padding:.42rem .5rem; border-bottom:1px solid #20242e; vertical-align:top}
+  table.sys tbody tr{cursor:pointer}
   table.sys tbody tr:hover td{background:var(--card2)}
   table.sys .up{color:var(--up); font-weight:700; white-space:nowrap}
-  table.sys .sym{font-weight:800; font-size:.92rem; white-space:nowrap}
-  table.sys .degs{color:var(--muted); font-size:.78rem; font-variant-numeric:tabular-nums}
-  table.sys .md{color:var(--accent); font-size:.76rem; white-space:nowrap}
+  table.sys .sym{font-weight:800; font-size:.9rem; white-space:nowrap}
+  table.sys .degs{color:var(--muted); font-size:.76rem; font-variant-numeric:tabular-nums}
+  table.sys .md{color:var(--accent); font-size:.74rem; white-space:nowrap}
   table.sys .md.warn{color:var(--warn)}
 
-  /* ---- modes ---- */
-  .mode-tabs{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem}
-  .mode-body{display:flex; flex-direction:column; gap:.6rem}
-  .mode-desc{font-size:.88rem; color:var(--muted); margin:0 0 .4rem}
-  .combo{display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; background:var(--card2); border:1px solid var(--border2); border-radius:10px; padding:.55rem .8rem; cursor:pointer}
-  .combo:hover{border-color:var(--accent)}
-  .combo .cslash{font-weight:800; font-size:1.05rem; white-space:nowrap}
-  .combo .cslash .u{color:var(--up)} .combo .cslash .l{color:var(--low)}
-  .combo .arr{color:var(--faint)}
-  .combo .csym{font-weight:800; font-variant-numeric:tabular-nums}
-  .combo .cnote{color:var(--muted); font-size:.8rem; margin-left:auto}
+  /* modes */
+  .mode-tabs{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.9rem}
+  .mode-desc{font-size:.86rem; color:var(--muted); margin:0 0 .6rem}
 
-  /* ---- orchestration ---- */
+  /* collapsible explanation */
+  details.explain{margin-top:1.4rem; border:1px solid var(--border); border-radius:14px; background:var(--card); padding:0 1.2rem}
+  details.explain[open]{padding-bottom:1.2rem}
+  details.explain > summary{cursor:pointer; list-style:none; padding:1rem 0; font-weight:700; font-size:1rem; display:flex; align-items:center; gap:.5rem}
+  details.explain > summary::-webkit-details-marker{display:none}
+  details.explain > summary::before{content:"▸"; color:var(--accent); transition:transform .15s}
+  details.explain[open] > summary::before{transform:rotate(90deg)}
   .orch{display:grid; grid-template-columns:1fr 1fr; gap:1.4rem}
-  @media(max-width:720px){ .orch{grid-template-columns:1fr} }
-  .orch h3{font-size:.95rem; margin:0 0 .5rem}
-  .orch ul{margin:.2rem 0 0; padding-left:1.1rem; font-size:.88rem; color:#cfd4de}
+  @media(max-width:680px){ .orch{grid-template-columns:1fr} }
+  .orch h3{font-size:.92rem; margin:0 0 .5rem}
+  .orch ul{margin:.2rem 0 0; padding-left:1.1rem; font-size:.86rem; color:#cfd4de}
   .orch li{margin-bottom:.4rem}
   .orch .reg{font-weight:700; color:var(--text)}
-  .ex{background:var(--card2); border:1px solid var(--border2); border-radius:12px; padding:1rem 1.1rem; margin-top:.4rem}
+  .ex{background:var(--card2); border:1px solid var(--border2); border-radius:12px; padding:.9rem 1rem; margin-top:.4rem}
   .ex .extitle{font-weight:800; margin-bottom:.5rem}
-  .ex .exrow{font-size:.86rem; color:#cfd4de; margin-bottom:.25rem}
+  .ex .exrow{font-size:.84rem; color:#cfd4de; margin-bottom:.25rem}
   .ex .exrow b{color:var(--text)}
+  .theory{font-size:.82rem; color:var(--muted); line-height:1.7; margin-top:1rem}
+  .theory b{color:var(--text)}
 
-  footer{margin-top:2.6rem; font-size:.78rem; color:var(--faint); line-height:1.7}
+  footer{margin-top:2rem; font-size:.76rem; color:var(--faint); line-height:1.7}
   footer b{color:var(--muted)}
   a{color:var(--accent)}
+  .sronly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
   <h1>Polychord Lab <span class="tag">理論検証済み</span></h1>
-  <p class="lead">下トライアド＋上トライアドの「スラッシュコード」から拡張和音（9th/11th/13th系）を導く体系表とインタラクティブ探索器。
-  コード名（解釈）だけでなく <b style="color:var(--text)">実際の構成音と度数</b> を常に計算して併記します。</p>
+  <p class="lead">トライアド2つの「スラッシュ／ポリコード」から拡張和音の<b style="color:var(--text)">色</b>を探すツール。実際の構成音と度数を常に計算して表示します。曲の<b style="color:var(--text)">土台（キー）</b>はサブベースツールで決め、ここでは色・配置を詰める想定です。</p>
 </header>
 
-<!-- ============ EXPLORER ============ -->
-<h2>探索器</h2>
+<!-- ===== FOUNDATION (key from the sub-bass tool) ===== -->
 <div class="card">
-  <div class="ex-top">
-    <div class="cgroup">
-      <span class="clabel">ルート (X)</span>
-      <div class="segs"><select id="root" class="seg"></select></div>
-    </div>
-    <div class="cgroup">
-      <span class="clabel">方向</span>
-      <div class="segs" id="dir">
-        <button class="seg" data-v="fwd">順引き（積む→和音）</button>
-        <button class="seg" data-v="rev">逆引き（和音→積み方）</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ---- forward ---- -->
-  <div id="fwdPanel">
-    <div class="ctrls">
-      <div class="cgroup">
-        <span class="clabel">下コード</span>
-        <div class="segs" id="lowq">
-          <button class="seg" data-v="maj">maj</button>
-          <button class="seg" data-v="min">min</button>
-          <button class="seg dim" data-v="dim">dim</button>
-        </div>
-      </div>
-      <div class="cgroup">
-        <span class="clabel">上コードのルート（X からの音程）</span>
-        <div class="segs" id="upiv"></div>
-      </div>
-      <div class="cgroup">
-        <span class="clabel">上コード</span>
-        <div class="segs" id="upq">
-          <button class="seg" data-v="maj">maj</button>
-          <button class="seg" data-v="min">min</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="result">
-      <div class="slash" id="slash"></div>
-      <div class="rmeta">
-        <div class="sym" id="sym"></div>
-        <div style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
-          <div class="modechip" id="mode"></div>
-          <span class="keyfit" id="keyfit" hidden></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="kbd"><div class="kbd-inner" id="kbd"></div></div>
-
-    <div class="analysis">
-      <div class="arow"><span class="k">構成音</span><div class="pills" id="notes"></div></div>
-      <div class="arow"><span class="k">度数</span><div class="pills" id="degs"></div></div>
-    </div>
-
-    <div class="caveat" id="caveat"></div>
-
-    <div class="actions">
-      <button class="btn" id="play">▶ 試聴</button>
-      <span class="legend">
-        <span><i style="background:var(--low)"></i>下トライアド</span>
-        <span><i style="background:var(--up)"></i>上トライアド</span>
-        <span><i style="background:var(--both)"></i>共有音</span>
-      </span>
-    </div>
-  </div>
-
-  <!-- ---- reverse ---- -->
-  <div id="revPanel" hidden>
-    <div class="segs rev-sub" id="revMode">
-      <button class="seg" data-v="color">欲しい“色”（度数）から</button>
-      <button class="seg" data-v="name">コード名から</button>
-    </div>
-
-    <div id="revColorUI">
-      <div class="cgroup">
-        <span class="clabel">下コード</span>
-        <div class="segs" id="revLow">
-          <button class="seg" data-v="any">すべて</button>
-          <button class="seg" data-v="maj">maj</button>
-          <button class="seg" data-v="min">min</button>
-        </div>
-      </div>
-      <div class="cgroup" style="flex:1; min-width:260px">
-        <span class="clabel">含めたい度数（複数選択）</span>
-        <div class="segs" id="revDegs"></div>
-      </div>
-    </div>
-
-    <div id="revNameUI" hidden>
-      <div class="cgroup">
-        <span class="clabel">目的の和音（X = ルート）</span>
-        <div class="segs"><select id="revChord" class="seg"></select></div>
-      </div>
-    </div>
-
-    <div class="rev-results" id="revResults"></div>
-  </div>
-</div>
-
-<!-- ============ KEY CONTEXT / SUB-BASS LINK ============ -->
-<h2>キーで探す ／ サブベース連携</h2>
-<div class="card">
-  <div class="ex-top" style="border-bottom:none;margin-bottom:.6rem;padding-bottom:0">
-    <div class="cgroup">
-      <span class="clabel">キー</span>
-      <div class="segs"><select id="keyTonic" class="seg"></select></div>
-    </div>
-    <div class="cgroup">
-      <span class="clabel">スケール</span>
-      <div class="segs"><select id="keyScale" class="seg"></select></div>
-    </div>
+  <div class="foundation">
+    <div class="cgroup"><span class="lbl-strong">曲の土台 — キー</span><div class="segs"><select id="keyTonic" class="seg"></select></div></div>
+    <div class="cgroup"><span class="clabel">スケール</span><div class="segs"><select id="keyScale" class="seg"></select></div></div>
     <a id="subLink" class="btn ghost" target="_blank" rel="noopener" style="display:none"></a>
+    <p class="fnote">土台（キー）はサブベースツールで決めるのがおすすめ。キーを選ぶと、下の「キーで探す」にそのキーで使える色が並びます。</p>
   </div>
-  <p class="mode-desc" id="keyHint">キーとスケールを選ぶと、そのキーに収まる拡張ボイシングを度数別に一覧します。各チップをクリックで探索器へ。サブベースツールでキーを選べばリンクで引き継げます。</p>
-  <div class="key-view" id="keyResults"></div>
 </div>
 
-<!-- ============ SYSTEM TABLE ============ -->
-<h2>体系表</h2>
-<div class="card">
-  <div class="tbl-tabs" id="tblTabs"></div>
-  <div class="tbl-wrap">
-    <table class="sys">
-      <thead><tr><th>上コード</th><th>導かれる和音</th><th>度数（実音）</th><th>モード／注意</th></tr></thead>
-      <tbody id="sysBody"></tbody>
-    </table>
+<!-- ===== HERO: current voicing ===== -->
+<div class="card hero">
+  <div class="result">
+    <div class="slash" id="slash"></div>
+    <div class="rmeta">
+      <div class="sym" id="sym"></div>
+      <div class="chips"><span class="modechip" id="mode"></span><span class="keyfit" id="keyfit" hidden></span></div>
+    </div>
   </div>
-  <p style="font-size:.78rem;color:var(--muted);margin:.9rem 0 0">行をクリックすると探索器に読み込まれます。⚠ はバイトーナルな衝突を含むボイシング。</p>
+
+  <div class="kbd"><div class="kbd-inner" id="kbd"></div></div>
+
+  <div class="analysis">
+    <div class="arow"><span class="k">構成音</span><div class="pills" id="notes"></div></div>
+    <div class="arow"><span class="k">度数</span><div class="pills" id="degs"></div></div>
+  </div>
+
+  <div class="caveat" id="caveat"></div>
+  <div class="orch-hint" id="orchHint"></div>
+
+  <div class="herobar">
+    <div class="cgroup"><span class="clabel">ルート (X)</span><div class="segs"><select id="root" class="seg"></select></div></div>
+    <div class="cgroup"><span class="clabel">下の鳴らし方</span>
+      <div class="segs" id="bassmode">
+        <button class="seg" data-v="triad">三和音</button>
+        <button class="seg" data-v="single">単音ベース</button>
+      </div>
+    </div>
+    <button class="btn" id="play">▶ 試聴</button>
+    <span class="legend">
+      <span><i style="background:var(--low)"></i>下</span>
+      <span><i style="background:var(--up)"></i>上</span>
+      <span><i style="background:var(--both)"></i>共有</span>
+    </span>
+  </div>
 </div>
 
-<!-- ============ MODES ============ -->
-<h2>モード別の定番配置</h2>
-<div class="card">
-  <div class="mode-tabs" id="modeTabs"></div>
-  <div class="mode-body" id="modeBody"></div>
+<!-- ===== PICKER (tabbed input methods) ===== -->
+<div class="card picker">
+  <div class="tabbar" id="tabbar">
+    <button class="seg" data-v="key">キーで探す</button>
+    <button class="seg" data-v="build">組み立てる</button>
+    <button class="seg" data-v="color">色（度数）で</button>
+    <button class="seg" data-v="name">コード名で</button>
+    <button class="seg" data-v="mode">モードで</button>
+    <button class="seg" data-v="list">一覧</button>
+  </div>
+
+  <!-- key -->
+  <div class="tabpanel" data-tab="key">
+    <p class="hint">土台のキーに収まる拡張ボイシングを度数別に表示します。チップをクリックで上の結果へ。</p>
+    <div class="results" id="keyResults"></div>
+  </div>
+
+  <!-- build -->
+  <div class="tabpanel" data-tab="build" hidden>
+    <p class="hint">ルート (X) は上で選択。下の三和音＋上の三和音を組み合わせて色を作ります。</p>
+    <div class="pickrow">
+      <div class="cgroup"><span class="clabel">下コード</span>
+        <div class="segs" id="lowq">
+          <button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button><button class="seg dim" data-v="dim">dim</button>
+        </div>
+      </div>
+      <div class="cgroup"><span class="clabel">上コードのルート（X からの音程）</span><div class="segs" id="upiv"></div></div>
+      <div class="cgroup"><span class="clabel">上コード</span>
+        <div class="segs" id="upq"><button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- color -->
+  <div class="tabpanel" data-tab="color" hidden>
+    <p class="hint">欲しい度数（色）を選ぶと、その音を含むボイシングを一覧します。</p>
+    <div class="pickrow">
+      <div class="cgroup"><span class="clabel">下コード</span>
+        <div class="segs" id="revLow"><button class="seg" data-v="any">すべて</button><button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button></div>
+      </div>
+      <div class="cgroup" style="flex:1;min-width:240px"><span class="clabel">含めたい度数（複数選択）</span><div class="segs" id="revDegs"></div></div>
+    </div>
+    <div class="results" id="colorResults"></div>
+  </div>
+
+  <!-- name -->
+  <div class="tabpanel" data-tab="name" hidden>
+    <p class="hint">目的の和音を選ぶと、その積み方（レシピ）を表示します。</p>
+    <div class="pickrow">
+      <div class="cgroup"><span class="clabel">目的の和音（X = ルート）</span><div class="segs"><select id="revChord" class="seg"></select></div></div>
+    </div>
+    <div class="results" id="nameResults"></div>
+  </div>
+
+  <!-- mode -->
+  <div class="tabpanel" data-tab="mode" hidden>
+    <div class="mode-tabs" id="modeTabs"></div>
+    <div id="modeBody"></div>
+  </div>
+
+  <!-- list -->
+  <div class="tabpanel" data-tab="list" hidden>
+    <div class="mode-tabs" id="tblTabs"></div>
+    <div class="tbl-wrap">
+      <table class="sys"><thead><tr><th>上コード</th><th>導かれる和音</th><th>度数（実音）</th><th>モード／注意</th></tr></thead><tbody id="sysBody"></tbody></table>
+    </div>
+    <p style="font-size:.76rem;color:var(--muted);margin:.8rem 0 0">行をクリックで結果へ。⚠ はバイトーナルな衝突を含むボイシング。</p>
+  </div>
 </div>
 
-<!-- ============ ORCHESTRATION ============ -->
-<h2>オーケストレーション指針</h2>
-<div class="card">
+<!-- ===== collapsible explanation ===== -->
+<details class="explain">
+  <summary>配置・オーケストレーションと使い方</summary>
   <div class="orch">
     <div>
       <h3>セクション別の役割</h3>
       <ul>
-        <li><span class="reg">低弦／ベース</span>：ルート＋5度。低域は広く配置。</li>
+        <li><span class="reg">低弦／ベース</span>：ルート＋5度。サブは単音で深く。</li>
         <li><span class="reg">中域（Va./木管）</span>：3rd・7th など <b>機能決定音</b> を明確に。</li>
-        <li><span class="reg">高域（Vn./Fl./Ob.）</span>：9th・11th・13th を必要に応じて重ねる。</li>
+        <li><span class="reg">高域（Vn./Fl./Ob.）</span>：9th・11th・13th（上部トライアド）を必要に応じて。</li>
       </ul>
-      <h3 style="margin-top:1.1rem">ダブリングとブレンド</h3>
+      <h3 style="margin-top:1rem">ダブリングとブレンド</h3>
       <ul>
         <li>同音重ね（doubling）で音色ブレンド・音量確保。</li>
-        <li>例：Fl.＋Vn. のユニゾン、弦の divisi。</li>
         <li>各セクションが構成音を分担 → 合奏全体で拡張和音が成立。</li>
       </ul>
     </div>
@@ -345,45 +321,38 @@
       <div class="ex">
         <div class="extitle"><span style="color:var(--up)">D</span><span style="color:var(--faint)">/</span><span style="color:var(--low)">C</span> → Cmaj13(#11)</div>
         <div class="exrow"><b>ベース：</b>C（ルート）</div>
-        <div class="exrow"><b>内声：</b>E, B（3rd・maj7 ＝機能決定音／含意の補完）</div>
+        <div class="exrow"><b>内声：</b>E, B（3rd・maj7 ＝機能音）</div>
         <div class="exrow"><b>高声：</b>D – F# – A（D maj トライアド ＝ 9・#11・13）</div>
-        <div class="exrow" style="margin-top:.5rem;color:var(--muted)">→ 合奏全体で「Cmaj13(#11)」の響きが成立。単一の鍵盤では maj7(B) が省略されがちでも、内声が補えば完全な拡張和音になる。</div>
+        <div class="exrow" style="margin-top:.5rem;color:var(--muted)">→ 合奏全体で「Cmaj13(#11)」が成立。単一鍵盤では省略されがちな maj7 も内声が補える。</div>
       </div>
-      <p class="mode-desc" style="margin-top:.9rem">「省略音は他パートが補完する」— これが体系表のコード名（解釈）と実音が食い違う場合の橋渡し。探索器の <b>度数</b> 表示で“実際に鳴っている音”を確認しながら、足りない機能音をどのパートに振るか考えると良い。</p>
+      <p class="theory"><b>使い方の芯：</b>「今のボイシング」は常に1つ。上の結果パネルが主役で、下のタブはそれを選ぶ入口です。土台（キー）を決め →「キーで探す」から色を選ぶ、が最短ルート。困ったら表記より <b>度数（実音）</b> を信頼してください（同じ音でも文脈で呼び名は変わります）。</p>
     </div>
   </div>
-</div>
+</details>
 
 <footer>
-  <p>構成音と度数はすべて X=ルートとして実音から計算しています。</p>
-  <p><b>解釈の幅：</b> 同じ構成音でも文脈で複数の呼び名があり得ます。困ったら表記より <b>度数（実音）</b> を信頼してください。</p>
+  <p>構成音と度数はすべて X=ルートとして実音から計算しています。理論体系は文献照合で検証済み。</p>
 </footer>
 </div>
 
 <script>
 "use strict";
-/* ---------- music helpers (proper spelling) ---------- */
+/* ---------- music helpers ---------- */
 const LETTERS=['C','D','E','F','G','A','B'];
-const LPC=[0,2,4,5,7,9,11];                 // natural pc of each letter
+const LPC=[0,2,4,5,7,9,11];
 const ACC={0:'',1:'#',2:'##',3:'###',9:'bbb',10:'bb',11:'b'};
-// chromatic dropdown options (both spellings)
 const ROOT_OPTS=['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
-// legacy ?r= index order (old bookmarks) + sub-bass exchange spelling (sharps, indexed by pc)
 const LEGACY_ROOTS=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
 const ROOT_SHARP=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-// preferred key-tonic spelling per pc (mirrors the sub-bass tool)
 const MAJ_PC=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
 const MIN_PC=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
 const MAJORISH=new Set(['major','lydian','mixolydian']);
-// scale patterns (shared vocabulary with the sub-bass tool)
 const SCALES={ major:[0,2,4,5,7,9,11], minor:[0,2,3,5,7,8,10], hminor:[0,2,3,5,7,8,11], mminor:[0,2,3,5,7,9,11],
   dorian:[0,2,3,5,7,9,10], phrygian:[0,1,3,5,7,8,10], lydian:[0,2,4,6,7,9,11], mixolydian:[0,2,4,5,7,9,10], locrian:[0,1,3,5,6,8,10] };
 const SCALE_LABEL={ major:'major', minor:'minor (natural)', hminor:'harmonic minor', mminor:'melodic minor',
   dorian:'Dorian', phrygian:'Phrygian', lydian:'Lydian', mixolydian:'Mixolydian', locrian:'Locrian' };
-// interval name -> [letterSteps, semitones]
 const IVAL={ 'b2':[1,1],'M2':[1,2],'M3':[2,4],'P4':[3,5],'P5':[4,7],'M6':[5,9],'m7':[6,10],'M7':[6,11] };
 const IVSEMI={ b2:1, M2:2, M3:4, P4:5, P5:7, M6:9, m7:10, M7:11 };
-// triad quality -> [3rd interval, 5th interval] (for spelling) and pitch-class offsets (for set math)
 const TRIAD={ maj:[[2,4],[4,7]], min:[[2,3],[4,7]], dim:[[2,3],[4,6]] };
 const TRIAD_PC={ maj:[0,4,7], min:[0,3,7], dim:[0,3,6] };
 
@@ -393,7 +362,18 @@ function noteFromName(name){ const li=LETTERS.indexOf(name[0]); let pc=LPC[li];
   for(const ch of name.slice(1)) pc += (ch==='#')?1 : (ch==='b'||ch==='♭')?-1 : 0;
   return {li, pc:((pc%12)+12)%12, name}; }
 function curRoot(){ return noteFromName(st.rootName); }
-// pitch-class set of a voicing rooted at rootPc
+function buildTriad(root, quality, upRootIv){
+  let r=root; if(upRootIv){ const [s,t]=IVAL[upRootIv]; r=transpose(root,s,t); }
+  const [th,fi]=TRIAD[quality]; return [r, transpose(r,th[0],th[1]), transpose(r,fi[0],fi[1])];
+}
+function degree(root,note){
+  const gen=((note.li-root.li)%7+7)%7, sem=((note.pc-root.pc)%12+12)%12;
+  switch(sem){
+    case 0:return'R'; case 1:return'♭9'; case 2:return'9'; case 3:return gen===1?'#9':'♭3';
+    case 4:return'3'; case 5:return'11'; case 6:return gen===3?'#11':'♭5'; case 7:return'5';
+    case 8:return gen===4?'#5':'♭13'; case 9:return'13'; case 10:return'♭7'; case 11:return'maj7';
+  }
+}
 function voicingPcs(rootPc, low, iv, upq){
   const s=new Set();
   TRIAD_PC[low==='dim'?'dim':low].forEach(o=> s.add((rootPc+o)%12));
@@ -402,7 +382,6 @@ function voicingPcs(rootPc, low, iv, upq){
   return s;
 }
 function tonicSpelling(pc, scaleKey){ return (MAJORISH.has(scaleKey)?MAJ_PC:MIN_PC)[pc]; }
-// proper-spelled scale degrees (one note per letter)
 function keyDegrees(tonicName, scaleKey){
   const t=noteFromName(tonicName), pat=SCALES[scaleKey], out=[];
   for(let d=0; d<pat.length; d++){ const li=(t.li+d)%7, pc=(t.pc+pat[d])%12; out.push({li,pc,name:noteName(li,pc)}); }
@@ -411,39 +390,10 @@ function keyDegrees(tonicName, scaleKey){
 function keyActive(){ return st.keyPc!=null && st.keyScale && SCALES[st.keyScale]; }
 function keySet(){ return new Set(keyDegrees(tonicSpelling(st.keyPc,st.keyScale), st.keyScale).map(d=>d.pc)); }
 
-function buildTriad(root, quality, upRootIv){
-  let r=root;
-  if(upRootIv){ const [s,t]=IVAL[upRootIv]; r=transpose(root,s,t); }
-  const [th,fi]=TRIAD[quality];
-  return [r, transpose(r,th[0],th[1]), transpose(r,fi[0],fi[1])];
-}
-// degree label of a note relative to root: semitone-first (functional),
-// generic interval only disambiguates the enharmonic pairs.
-function degree(root,note){
-  const gen=((note.li-root.li)%7+7)%7;              // 0..6 (generic interval)
-  const sem=((note.pc-root.pc)%12+12)%12;           // 0..11
-  switch(sem){
-    case 0: return 'R';
-    case 1: return '♭9';
-    case 2: return '9';
-    case 3: return gen===1 ? '#9' : '♭3';           // D# vs E♭
-    case 4: return '3';
-    case 5: return '11';
-    case 6: return gen===3 ? '#11' : '♭5';          // F# vs G♭
-    case 7: return '5';
-    case 8: return gen===4 ? '#5' : '♭13';          // G# vs A♭
-    case 9: return '13';
-    case 10: return '♭7';
-    case 11: return 'maj7';
-  }
-}
-
 /* ---------- data ---------- */
-// key: low|iv|upq  ->  {sym, mode, warn?, raw?, note?}
 const IVORDER=['M2','M3','P4','P5','M6','m7','M7'];
 const IVLABEL={M2:'長2度',M3:'長3度',P4:'完4度',P5:'完5度',M6:'長6度',m7:'短7度',M7:'長7度'};
 const DATA={
- // ----- lower = maj -----
  'maj|M2|maj':{sym:'maj13(#11)',mode:'Lydian'},
  'maj|M2|min':{sym:'6/9(add11)',mode:'Ionian',note:'♮11はM3と半音でぶつかる（アヴォイド）。♭7は無いので属和音ではない'},
  'maj|M3|maj':{sym:'maj7(#5)',mode:'Augmented',note:'上△が#5を供給。下の♮5も残るので5/♭13が共存する'},
@@ -458,7 +408,6 @@ const DATA={
  'maj|m7|min':{sym:'7(♭9,11)',mode:'HM/Altered'},
  'maj|M7|maj':{sym:'maj7(#9,#11)',mode:'Lydian'},
  'maj|M7|min':{sym:'maj9(#11)',mode:'Lydian'},
- // ----- lower = min -----
  'min|M2|maj':{sym:'m6/9(#11)',mode:'Dorian/Lydian-m',note:'#11はリディアン色。♭7は無い（m6/9系）'},
  'min|M2|min':{sym:'m6/9(add11)',mode:'Dorian',note:'ドリアンの積み。♭7は無い（m6/9系）'},
  'min|M3|maj':{sym:'バイトーナル（♭3/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3、5と#5が半音でぶつかるバイトーナルなクラスター。上△の色を狙うなら下は省略気味に'},
@@ -474,215 +423,19 @@ const DATA={
  'min|M7|maj':{sym:'m(maj7,#11)',mode:'Melodic-m'},
  'min|M7|min':{sym:'m9(maj7,#11)',mode:'Melodic-m'},
 };
-// Locrian special: dim lower + b2 maj
 const LOCRIAN={sym:'dim(♭9,11,♭13)',mode:'Locrian',warn:1,note:'maj3も♭7も無いので属7ではない。ロクリアン的な dim/ø 系クラスター'};
 
-/* ---------- state ---------- */
-let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', dir:'fwd', keyPc:null, keyScale:''};
-
-/* ---------- build controls ---------- */
-const $=id=>document.getElementById(id);
-const rootSel=$('root');
-ROOT_OPTS.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; rootSel.appendChild(o); });
-function syncRootSelect(){
-  if(![...rootSel.options].some(o=>o.value===st.rootName)){ const o=document.createElement('option'); o.value=st.rootName; o.textContent=st.rootName; rootSel.appendChild(o); }
-  rootSel.value=st.rootName;
-}
-const upivBox=$('upiv');
-IVORDER.forEach(iv=>{ const b=document.createElement('button'); b.className='seg'; b.dataset.v=iv; b.textContent=iv; b.title=IVLABEL[iv]; upivBox.appendChild(b); });
-
-function wireSegs(boxId, key){
-  $(boxId).querySelectorAll('.seg').forEach(b=>{
-    b.addEventListener('click',()=>{ st[key]=b.dataset.v; if(key==='low') normalizeForDim(); render(); });
-  });
-}
-function normalizeForDim(){
-  // dim lower in this manual only pairs with the Locrian b2-maj voicing
-  if(st.low==='dim'){ st.iv='b2'; st.upq='maj'; }
-  else if(st.iv==='b2'){ st.iv='M2'; }
-}
-wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq');
-rootSel.addEventListener('change',()=>{ st.rootName=rootSel.value; render(); if(st.dir==='rev') refreshRev(); });
-
-/* ---------- render ---------- */
-function currentEntry(){
-  if(st.low==='dim') return LOCRIAN;
-  return DATA[`${st.low}|${st.iv}|${st.upq}`];
-}
-function render(){
-  // sync control active states
-  syncRootSelect();
-  setActive('lowq','low'); setActive('upq','upq');
-  // upiv: show b2 only in dim mode
-  upivBox.querySelectorAll('.seg').forEach(b=>{
-    b.style.display = (st.low==='dim') ? (b.dataset.v==='M2'?'inline-block':'none') : 'inline-block';
-    b.textContent = (st.low==='dim'&&b.dataset.v==='M2') ? 'b2' : b.dataset.v;
-    b.classList.toggle('on', st.low==='dim' ? b.dataset.v==='M2' : b.dataset.v===st.iv);
-  });
-  // disable upq toggle in dim
-  $('upq').querySelectorAll('.seg').forEach(b=> b.style.opacity = st.low==='dim'?'.35':'1');
-
-  const root=curRoot();
-  const ivUse = st.low==='dim' ? 'b2' : st.iv;
-  const lower=buildTriad(root, st.low==='dim'?'dim':st.low, null);
-  const upper=buildTriad(root, 'maj', ivUse).map(n=>n); // upper quality:
-  const upTriad=buildTriad(root, st.low==='dim'?'maj':st.upq, ivUse);
-
-  const entry=currentEntry();
-  const upRootName=upTriad[0].name;
-  const upQ = st.low==='dim'?'':(st.upq==='maj'?'':'m');
-
-  // slash notation (lower shows its triad quality: Cm / Cdim)
-  const lowSuffix = st.low==='maj'?'':st.low==='min'?'m':'dim';
-  $('slash').innerHTML=`<span class="u">${upRootName}${upQ}</span><span class="bar">/</span><span class="l">${root.name}${lowSuffix}</span>`;
-  // chord symbol
-  $('sym').textContent = entry ? (entry.raw ? entry.sym : root.name+entry.sym) : '?';
-  const mode=$('mode'); mode.textContent=entry?entry.mode:''; mode.className='modechip'+(entry&&entry.warn?' warn':'');
-  // key-fit indicator
-  const kf=$('keyfit');
-  if(keyActive()){
-    const ks=keySet();
-    const inKey=[...voicingPcs(root.pc, st.low, st.iv, st.upq)].every(pc=>ks.has(pc));
-    kf.hidden=false; kf.className='keyfit '+(inKey?'in':'out');
-    kf.textContent=inKey? `✓ ${tonicSpelling(st.keyPc,st.keyScale)} ${SCALE_LABEL[st.keyScale]} 内` : '✗ キー外';
-  } else { kf.hidden=true; }
-
-  // notes + degrees
-  const lowPc=new Set(lower.map(n=>n.pc));
-  const upPc=new Set(upTriad.map(n=>n.pc));
-  const all=[...lower,...upTriad];
-  // dedupe by name, keep ordering by pc-from-root
-  const seen=new Set(); const uniq=[];
-  all.forEach(n=>{ if(!seen.has(n.name)){ seen.add(n.name); uniq.push(n); } });
-  uniq.sort((a,b)=> ((a.pc-root.pc+12)%12) - ((b.pc-root.pc+12)%12) );
-
-  const notesBox=$('notes'); notesBox.innerHTML='';
-  const degBox=$('degs'); degBox.innerHTML='';
-  uniq.forEach(n=>{
-    const inL=lowPc.has(n.pc), inU=upPc.has(n.pc);
-    const cls = inL&&inU ? 'b' : inL ? 'l' : 'u';
-    const p=document.createElement('span'); p.className='pill '+cls; p.textContent=n.name; notesBox.appendChild(p);
-    const d=document.createElement('span'); d.className='pill '+cls; d.textContent=degree(root,n); degBox.appendChild(d);
-  });
-
-  // keyboard
-  drawKeyboard(root, lower, upTriad);
-
-  // caveat
-  const cav=$('caveat');
-  if(entry&&(entry.note||entry.warn)){
-    cav.className='caveat'+(entry.warn?' warn':'');
-    cav.innerHTML=`<span class="ic">${entry.warn?'⚠️':'ℹ️'}</span><span>${entry.note||'バイトーナルな衝突を含みます。'}</span>`;
-  } else { cav.className='caveat'; cav.innerHTML=`<span class="ic">✓</span><span>構成音と表記が一致するクリーンな解釈です。</span>`; }
-
-  syncSysHighlight();
-  saveURL();
-}
-function setActive(boxId,key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===st[key])); }
-
-/* ---------- keyboard ---------- */
-function drawKeyboard(root, lower, upper){
-  const box=$('kbd'); box.innerHTML='';
-  // MIDI: bass root = C3(48)+rootPc ; lower triad stacked up from it ;
-  // upper triad sits an octave above the bass root, stacked from its own root.
-  const base=48+root.pc;
-  const lowMidi=lower.map(n=> base + ((n.pc-root.pc+12)%12));
-  const upRootMidi = base + 12 + ((upper[0].pc-root.pc+12)%12);
-  const upMidi=upper.map(n=> upRootMidi + ((n.pc-upper[0].pc+12)%12));
-  const lowSet=new Set(lowMidi), upSet=new Set(upMidi);
-  window._chordMidi=[...lowMidi,...upMidi];
-
-  const START=48, END=84; // C3..C6
-  const isBlack=pc=>[1,3,6,8,10].includes(((pc)%12+12)%12);
-  const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-  let x=0; const whiteW=34;
-  const whites=[]; const blacks=[];
-  for(let m=START;m<=END;m++){
-    const pc=m%12;
-    if(!isBlack(pc)) whites.push(m);
-  }
-  whites.forEach((m,wi)=>{
-    const pc=m%12;
-    const w=document.createElement('div'); w.className='wk';
-    const cls = lowSet.has(m)&&upSet.has(m)?'both':lowSet.has(m)?'low':upSet.has(m)?'up':'';
-    if(cls) w.classList.add(cls);
-    const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent= cls? NAMES[pc] : (pc===0?'C'+(Math.floor(m/12)-1):''); w.appendChild(lbl);
-    box.appendChild(w);
-    // black key after this white if applicable
-    const nb=m+1;
-    if(nb<=END && isBlack(nb%12)){
-      const b=document.createElement('div'); b.className='bk';
-      const bcls=lowSet.has(nb)&&upSet.has(nb)?'both':lowSet.has(nb)?'low':upSet.has(nb)?'up':'';
-      if(bcls){ b.classList.add(bcls); const bl=document.createElement('span'); bl.className='lbl'; bl.textContent=NAMES[nb%12]; b.appendChild(bl); }
-      b.style.left=(wi*whiteW + whiteW - 11)+'px';
-      box.appendChild(b);
-    }
-  });
-}
-
-/* ---------- audio (lightweight) ---------- */
-let AC=null;
-function play(){
-  const mids=window._chordMidi||[]; if(!mids.length) return;
-  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
-  const t0=AC.currentTime; const out=AC.createGain(); out.gain.value=0.0001; out.connect(AC.destination);
-  out.gain.setValueAtTime(0.0001,t0); out.gain.exponentialRampToValueAtTime(0.22,t0+0.02);
-  out.gain.exponentialRampToValueAtTime(0.0001,t0+1.8);
-  [...new Set(mids)].forEach((m,i)=>{
-    const o=AC.createOscillator(); o.type='triangle';
-    o.frequency.value=440*Math.pow(2,(m-69)/12);
-    const g=AC.createGain(); g.gain.value=1/Math.max(4,mids.length);
-    o.connect(g); g.connect(out); o.start(t0+i*0.012); o.stop(t0+1.85);
-  });
-}
-$('play').addEventListener('click',play);
-
-/* ---------- system table ---------- */
-let tblMode='maj';
-function buildTblTabs(){
-  const t=$('tblTabs'); t.innerHTML='';
-  [['maj','下＝maj'],['min','下＝min'],['dim','下＝dim（Locrian）']].forEach(([v,lab])=>{
-    const b=document.createElement('button'); b.className='seg'+(v===tblMode?' on':''); b.textContent=lab;
-    b.addEventListener('click',()=>{ tblMode=v; buildTblTabs(); buildSysTable(); }); t.appendChild(b);
-  });
-}
-function buildSysTable(){
-  const tb=$('sysBody'); tb.innerHTML='';
-  const root=curRoot();
-  if(tblMode==='dim'){
-    addSysRow(tb,'dim','b2','maj',LOCRIAN,root,'b2 上','maj');
-    return;
-  }
-  IVORDER.forEach(iv=>{
-    ['maj','min'].forEach(upq=>{
-      const e=DATA[`${tblMode}|${iv}|${upq}`];
-      addSysRow(tb,tblMode,iv,upq,e,root,iv+' 上',upq);
-    });
-  });
-}
-function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
-  const upTriad=buildTriad(root,(low==='dim'?'maj':upq),iv);
-  const lower=buildTriad(root,(low==='dim'?'dim':low),null);
-  const lowPc=new Set(lower.map(n=>n.pc));
-  const all=[...lower,...upTriad]; const seen=new Set(); const uniq=[];
-  all.forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name); uniq.push(n);} });
-  uniq.sort((a,b)=>((a.pc-root.pc+12)%12)-((b.pc-root.pc+12)%12));
-  const degs=uniq.map(n=>degree(root,n)).join(' ');
-  const tr=document.createElement('tr');
-  tr.dataset.low=low; tr.dataset.iv=iv; tr.dataset.upq=upq;
-  tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td>
-    <td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span></td>
-    <td class="degs">${degs}</td>
-    <td class="md${e.warn?' warn':''}">${e.warn?'⚠ ':''}${e.mode}</td>`;
-  tr.addEventListener('click',()=>{ st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); document.querySelector('.card').scrollIntoView({behavior:'smooth',block:'start'}); });
-  tb.appendChild(tr);
-}
-function syncSysHighlight(){
-  document.querySelectorAll('#sysBody tr').forEach(tr=>{
-    const on = tr.dataset.low===st.low && (st.low==='dim' || (tr.dataset.iv===st.iv && tr.dataset.upq===st.upq));
-    tr.style.background = on ? 'rgba(110,168,254,.10)' : '';
-  });
-}
+/* ---------- reverse index ---------- */
+const REV_DEGS=['♭9','9','#9','11','#11','♭5','#5','♭13','13','♭7','maj7'];
+const INDEX=[];
+(function(){ const C=noteFromName('C');
+  const add=(low,iv,upq,e)=>{ const lo=buildTriad(C,low==='dim'?'dim':low,null), up=buildTriad(C,low==='dim'?'maj':upq,iv);
+    const seen=new Set(),u=[]; [...lo,...up].forEach(n=>{if(!seen.has(n.name)){seen.add(n.name);u.push(n);}});
+    u.sort((a,b)=>((a.pc-C.pc+12)%12)-((b.pc-C.pc+12)%12));
+    const degs=u.map(n=>degree(C,n)); INDEX.push({low,iv,upq,e,degs,degSet:new Set(degs)}); };
+  for(const k in DATA){ const [low,iv,upq]=k.split('|'); add(low,iv,upq,DATA[k]); }
+  add('dim','b2','maj',LOCRIAN);
+})();
 
 /* ---------- modes ---------- */
 const MODES={
@@ -690,204 +443,292 @@ const MODES={
   Ionian:{desc:'純メジャー。素直な響き。属和音的な誤読に注意（♭7は無い）。',combos:[['maj','P5','maj'],['maj','M3','min'],['maj','M6','min']]},
   Mixolydian:{desc:'♭7 を持つドミナント系。9th/11th が自然に乗る。',combos:[['maj','P5','min'],['maj','m7','maj']]},
   Dorian:{desc:'マイナーだが ♮13（長6度）が明るい。ジャズ／モーダルの定番。',combos:[['min','m7','maj'],['min','P4','maj'],['min','M2','min']]},
-  Aeolian:{desc:'ナチュラルマイナー。♭13（♭6）が陰influence。♮13は使わない。',combos:[['min','P4','min'],['min','m7','maj']]},
+  Aeolian:{desc:'ナチュラルマイナー。♭13（♭6）が陰の色。♮13は使わない。',combos:[['min','P4','min'],['min','m7','maj']]},
   Phrygian:{desc:'♭9（♭2）が強い緊張感。スパニッシュ／ダーク。',combos:[['min','m7','min']]},
   Locrian:{desc:'♭5 を持つ唯一の減三和音系。不安定なクラスター。',combos:[['dim','b2','maj']]},
   'Melodic-m':{desc:'メロディックマイナー。m(maj7) 系の洗練された緊張。',combos:[['min','P5','maj'],['min','M7','min'],['min','M7','maj']]},
 };
-let modeCur='Lydian';
-function buildModeTabs(){
-  const t=$('modeTabs'); t.innerHTML='';
-  Object.keys(MODES).forEach(m=>{
-    const b=document.createElement('button'); b.className='seg'+(m===modeCur?' on':''); b.textContent=m;
-    b.addEventListener('click',()=>{ modeCur=m; buildModeTabs(); buildModeBody(); }); t.appendChild(b);
+
+/* ---------- state ---------- */
+let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', bass:'triad', tab:'key', keyPc:null, keyScale:''};
+const $=id=>document.getElementById(id);
+
+/* ---------- controls ---------- */
+const rootSel=$('root');
+ROOT_OPTS.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; rootSel.appendChild(o); });
+function syncRootSelect(){ if(![...rootSel.options].some(o=>o.value===st.rootName)){ const o=document.createElement('option'); o.value=st.rootName; o.textContent=st.rootName; rootSel.appendChild(o); } rootSel.value=st.rootName; }
+const upivBox=$('upiv');
+IVORDER.forEach(iv=>{ const b=document.createElement('button'); b.className='seg'; b.dataset.v=iv; b.textContent=iv; b.title=IVLABEL[iv]; upivBox.appendChild(b); });
+
+function normalizeForDim(){ if(st.low==='dim'){ st.iv='b2'; st.upq='maj'; } else if(st.iv==='b2'){ st.iv='M2'; } }
+function setActive(boxId,key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===st[key])); }
+function wireSegs(boxId, key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ st[key]=b.dataset.v; if(key==='low') normalizeForDim(); render(); })); }
+wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq'); wireSegs('bassmode','bass');
+rootSel.addEventListener('change',()=>{ st.rootName=rootSel.value; render(); refreshTab(); });
+
+/* ---------- render hero ---------- */
+function currentEntry(){ return st.low==='dim' ? LOCRIAN : DATA[`${st.low}|${st.iv}|${st.upq}`]; }
+function render(){
+  syncRootSelect(); setActive('lowq','low'); setActive('upq','upq'); setActive('bassmode','bass');
+  upivBox.querySelectorAll('.seg').forEach(b=>{
+    b.style.display = (st.low==='dim') ? (b.dataset.v==='M2'?'inline-block':'none') : 'inline-block';
+    b.textContent = (st.low==='dim'&&b.dataset.v==='M2') ? 'b2' : b.dataset.v;
+    b.classList.toggle('on', st.low==='dim' ? b.dataset.v==='M2' : b.dataset.v===st.iv);
   });
-}
-function buildModeBody(){
+  $('upq').querySelectorAll('.seg').forEach(b=> b.style.opacity = st.low==='dim'?'.35':'1');
+
   const root=curRoot();
-  const box=$('modeBody'); const md=MODES[modeCur];
-  box.innerHTML=`<p class="mode-desc">${md.desc}</p>`;
-  md.combos.forEach(([low,iv,upq])=>{
-    const e = low==='dim'?LOCRIAN:DATA[`${low}|${iv}|${upq}`];
-    const upTriad=buildTriad(root,(low==='dim'?'maj':upq),iv);
-    const upQ=low==='dim'?'':(upq==='maj'?'':'m');
-    const lowName=root.name+(low==='maj'?'':low==='min'?'m':'dim');
-    const c=document.createElement('div'); c.className='combo';
-    c.innerHTML=`<span class="cslash"><span class="u">${upTriad[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>
-      <span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span>
-      <span class="cnote">${e.warn?'⚠ ':''}${e.mode}</span>`;
-    c.addEventListener('click',()=>{ st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); document.querySelector('.card').scrollIntoView({behavior:'smooth',block:'start'}); });
-    box.appendChild(c);
-  });
-}
+  const ivUse = st.low==='dim' ? 'b2' : st.iv;
+  const fullLower=buildTriad(root, st.low==='dim'?'dim':st.low, null);
+  const upTriad=buildTriad(root, st.low==='dim'?'maj':st.upq, ivUse);
+  const single = st.bass==='single';
+  const lower = single ? [root] : fullLower;
+  const entry=currentEntry();
+  const upQ = st.low==='dim'?'':(st.upq==='maj'?'':'m');
+  const lowSuffix = st.low==='maj'?'':st.low==='min'?'m':'dim';
+  const lowLabel = single ? root.name : root.name+lowSuffix;
 
-/* ---------- reverse lookup ---------- */
-// Precompute the degree content of every voicing (root-independent, so use C).
-const REV_DEGS=['♭9','9','#9','11','#11','♭5','#5','♭13','13','♭7','maj7'];
-const INDEX=[];
-(function buildIndex(){
-  const C=noteFromName("C");
-  const add=(low,iv,upq,e)=>{
-    const lower=buildTriad(C, low==='dim'?'dim':low, null);
-    const up=buildTriad(C, low==='dim'?'maj':upq, iv);
-    const seen=new Set(), uniq=[];
-    [...lower,...up].forEach(n=>{ if(!seen.has(n.name)){ seen.add(n.name); uniq.push(n); } });
-    uniq.sort((a,b)=>((a.pc-C.pc+12)%12)-((b.pc-C.pc+12)%12));
-    const degs=uniq.map(n=>degree(C,n));
-    INDEX.push({low,iv,upq,e,degs,degSet:new Set(degs)});
-  };
-  for(const k in DATA){ const [low,iv,upq]=k.split('|'); add(low,iv,upq,DATA[k]); }
-  add('dim','b2','maj',LOCRIAN);
-})();
+  $('slash').innerHTML=`<span class="u">${upTriad[0].name}${upQ}</span><span class="bar">/</span><span class="l">${lowLabel}</span>`;
+  $('sym').textContent = entry ? (entry.raw ? entry.sym : root.name+entry.sym) : '?';
+  const mode=$('mode'); mode.textContent=entry?entry.mode:''; mode.className='modechip'+(entry&&entry.warn?' warn':'');
 
-let revMode='color', revLow='any';
-const revSel=new Set();
+  const kf=$('keyfit');
+  if(keyActive()){
+    const ks=keySet(); const actual=new Set([...lower,...upTriad].map(n=>n.pc));
+    const inKey=[...actual].every(pc=>ks.has(pc));
+    kf.hidden=false; kf.className='keyfit '+(inKey?'in':'out');
+    kf.textContent=inKey? `✓ ${tonicSpelling(st.keyPc,st.keyScale)} ${SCALE_LABEL[st.keyScale]} 内` : '✗ キー外';
+  } else kf.hidden=true;
 
-// build degree chips + chord-name select once
-(function buildRevControls(){
-  const dbox=$('revDegs');
-  REV_DEGS.forEach(d=>{
-    const b=document.createElement('button'); b.className='seg chip'; b.dataset.v=d; b.textContent=d;
-    b.addEventListener('click',()=>{ if(revSel.has(d)) revSel.delete(d); else revSel.add(d); b.classList.toggle('on'); revColorResults(); });
-    dbox.appendChild(b);
-  });
-  const sel=$('revChord'); const seen=new Set();
-  INDEX.forEach(x=>{ if(!x.e.raw && !seen.has(x.e.sym)){ seen.add(x.e.sym); const o=document.createElement('option'); o.value=x.e.sym; o.textContent='X'+x.e.sym; sel.appendChild(o); } });
-  sel.addEventListener('change',refreshRev);
-  $('revMode').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ revMode=b.dataset.v; refreshRev(); }));
-  $('revLow').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ revLow=b.dataset.v; revColorResults(); }));
-  $('dir').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>setDir(b.dataset.v)));
-})();
+  // notes + degrees
+  const lowPc=new Set(lower.map(n=>n.pc)), upPc=new Set(upTriad.map(n=>n.pc));
+  const seen=new Set(), uniq=[];
+  [...lower,...upTriad].forEach(n=>{ if(!seen.has(n.name)){ seen.add(n.name); uniq.push(n); } });
+  uniq.sort((a,b)=> ((a.pc-root.pc+12)%12)-((b.pc-root.pc+12)%12) );
+  const notesBox=$('notes'); notesBox.innerHTML=''; const degBox=$('degs'); degBox.innerHTML='';
+  uniq.forEach(n=>{ const inL=lowPc.has(n.pc), inU=upPc.has(n.pc); const cls=inL&&inU?'b':inL?'l':'u';
+    const p=document.createElement('span'); p.className='pill '+cls; p.textContent=n.name; notesBox.appendChild(p);
+    const d=document.createElement('span'); d.className='pill '+cls; d.textContent=degree(root,n); degBox.appendChild(d); });
 
-function setDir(d){
-  st.dir=d;
-  $('fwdPanel').hidden = d!=='fwd';
-  $('revPanel').hidden = d!=='rev';
-  $('dir').querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===d));
-  if(d==='rev') refreshRev();
+  drawKeyboard(root, lower, upTriad);
+
+  // caveat
+  const cav=$('caveat');
+  if(single){
+    const ref = entry&&!entry.raw ? `${root.name}${entry.sym}` : 'フルの和音';
+    cav.className='caveat'; cav.innerHTML=`<span class="ic">🎚️</span><span>単音ベース：下の 3rd・5th を省いた開いた声部（${ref} のクリーン版）。低域が濁らずサブ向き。3rd/7th は他パートで補完。</span>`;
+  } else if(entry&&(entry.note||entry.warn)){
+    cav.className='caveat'+(entry.warn?' warn':''); cav.innerHTML=`<span class="ic">${entry.warn?'⚠️':'ℹ️'}</span><span>${entry.note||'バイトーナルな衝突を含みます。'}</span>`;
+  } else { cav.className='caveat'; cav.innerHTML=`<span class="ic">✓</span><span>構成音と表記が一致するクリーンな解釈です。</span>`; }
+
+  // orchestration hint
+  const upNames=upTriad.map(n=>n.name).join('–');
+  const fifth=fullLower[2]?fullLower[2].name:'';
+  $('orchHint').innerHTML = single
+    ? `<b>配置:</b> 低域 ${root.name}（単音）／ 高域 ${upNames}（上部トライアド）。`
+    : `<b>配置:</b> 低域 ${root.name}＋${fifth}（土台）／ 中域 機能音(3rd・7th)／ 高域 ${upNames}（上部トライアド＝色）。`;
+
   saveURL();
 }
-function refreshRev(){
-  $('revColorUI').hidden = revMode!=='color';
-  $('revNameUI').hidden = revMode!=='name';
-  $('revMode').querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===revMode));
-  $('revLow').querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===revLow));
-  if(revMode==='color') revColorResults();
-  else renderRecipes(INDEX.filter(x=> !x.e.raw && x.e.sym===$('revChord').value));
-}
-function revColorResults(){
-  const want=[...revSel];
-  let res=INDEX.filter(x=>{
-    if(revLow!=='any' && x.low!==revLow) return false;
-    return want.every(d=> x.degSet.has(d));
+
+/* ---------- keyboard ---------- */
+function drawKeyboard(root, lower, upper){
+  const box=$('kbd'); box.innerHTML='';
+  const base=48+root.pc;
+  const lowMidi=lower.map(n=> base + ((n.pc-root.pc+12)%12));
+  const upRootMidi = base + 12 + ((upper[0].pc-root.pc+12)%12);
+  const upMidi=upper.map(n=> upRootMidi + ((n.pc-upper[0].pc+12)%12));
+  const lowSet=new Set(lowMidi), upSet=new Set(upMidi);
+  window._chordMidi=[...lowMidi,...upMidi];
+  const START=48, END=84, whiteW=32;
+  const isBlack=pc=>[1,3,6,8,10].includes(((pc)%12+12)%12);
+  const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const whites=[]; for(let m=START;m<=END;m++){ if(!isBlack(m%12)) whites.push(m); }
+  whites.forEach((m,wi)=>{
+    const pc=m%12; const w=document.createElement('div'); w.className='wk';
+    const cls = lowSet.has(m)&&upSet.has(m)?'both':lowSet.has(m)?'low':upSet.has(m)?'up':'';
+    if(cls) w.classList.add(cls);
+    const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent= cls?NAMES[pc]:(pc===0?'C'+(Math.floor(m/12)-1):''); w.appendChild(lbl); box.appendChild(w);
+    const nb=m+1;
+    if(nb<=END && isBlack(nb%12)){ const b=document.createElement('div'); b.className='bk';
+      const bcls=lowSet.has(nb)&&upSet.has(nb)?'both':lowSet.has(nb)?'low':upSet.has(nb)?'up':'';
+      if(bcls){ b.classList.add(bcls); const bl=document.createElement('span'); bl.className='lbl'; bl.textContent=NAMES[nb%12]; b.appendChild(bl); }
+      b.style.left=(wi*whiteW + whiteW - 10.5)+'px'; box.appendChild(b);
+    }
   });
-  res.sort((a,b)=> a.degs.length-b.degs.length);
-  renderRecipes(res);
 }
-function renderRecipes(list){
-  const box=$('revResults'); box.innerHTML='';
-  if(!list.length){ box.innerHTML='<div class="rev-empty">この体系（三和音2つ）で該当するボイシングはありません。</div>'; return; }
+
+/* ---------- audio ---------- */
+let AC=null;
+function play(){ const mids=window._chordMidi||[]; if(!mids.length) return;
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  const t0=AC.currentTime, out=AC.createGain(); out.gain.value=0.0001; out.connect(AC.destination);
+  out.gain.setValueAtTime(0.0001,t0); out.gain.exponentialRampToValueAtTime(0.22,t0+0.02); out.gain.exponentialRampToValueAtTime(0.0001,t0+1.8);
+  [...new Set(mids)].forEach((m,i)=>{ const o=AC.createOscillator(); o.type='triangle'; o.frequency.value=440*Math.pow(2,(m-69)/12);
+    const g=AC.createGain(); g.gain.value=1/Math.max(4,mids.length); o.connect(g); g.connect(out); o.start(t0+i*0.012); o.stop(t0+1.85); });
+}
+$('play').addEventListener('click',play);
+
+/* ---------- shared: load a voicing into the hero ---------- */
+function loadVoicing(rootName, low, iv, upq){ st.rootName=rootName; st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); }
+
+/* ---------- recipe rows (color/name results) ---------- */
+function renderRecipes(list, boxId){
+  const box=$(boxId); box.innerHTML='';
+  if(!list.length){ box.innerHTML='<div class="empty">この体系（三和音2つ）で該当するボイシングはありません。</div>'; return; }
   const root=curRoot();
-  const cnt=document.createElement('div'); cnt.className='rev-count'; cnt.textContent=`${list.length} 件`; box.appendChild(cnt);
+  const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=`${list.length} 件`; box.appendChild(cnt);
   list.forEach(x=>{
     const up=buildTriad(root, x.low==='dim'?'maj':x.upq, x.iv);
     const upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
     const lowName=root.name+(x.low==='maj'?'':x.low==='min'?'m':'dim');
     const c=document.createElement('div'); c.className='combo';
-    c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>
-      <span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:root.name+x.e.sym}</span>
-      <span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${x.degs.join(' ')}</span>`;
-    c.addEventListener('click',()=>{ st.low=x.low; st.iv=x.iv; st.upq=x.upq; normalizeForDim(); setDir('fwd'); render(); });
+    c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
+      `<span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:root.name+x.e.sym}</span>`+
+      `<span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${x.degs.join(' ')}</span>`;
+    c.addEventListener('click',()=>{ loadVoicing(root.name,x.low,x.iv,x.upq); window.scrollTo({top:0,behavior:'smooth'}); });
     box.appendChild(c);
   });
 }
 
-/* ---------- key context / sub-bass link ---------- */
+/* ---------- color tab ---------- */
+let revLow='any'; const revSel=new Set();
+(function(){ const dbox=$('revDegs');
+  REV_DEGS.forEach(d=>{ const b=document.createElement('button'); b.className='seg chip'; b.dataset.v=d; b.textContent=d;
+    b.addEventListener('click',()=>{ revSel.has(d)?revSel.delete(d):revSel.add(d); b.classList.toggle('on'); revColorResults(); }); dbox.appendChild(b); });
+  $('revLow').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ revLow=b.dataset.v; $('revLow').querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x.dataset.v===revLow)); revColorResults(); }));
+})();
+function revColorResults(){ const want=[...revSel];
+  let res=INDEX.filter(x=>{ if(revLow!=='any'&&x.low!==revLow) return false; return want.every(d=>x.degSet.has(d)); });
+  res.sort((a,b)=>a.degs.length-b.degs.length); renderRecipes(res,'colorResults');
+}
+
+/* ---------- name tab ---------- */
+(function(){ const sel=$('revChord'), seen=new Set();
+  INDEX.forEach(x=>{ if(!x.e.raw && !seen.has(x.e.sym)){ seen.add(x.e.sym); const o=document.createElement('option'); o.value=x.e.sym; o.textContent='X'+x.e.sym; sel.appendChild(o); } });
+  sel.addEventListener('change',renderName);
+})();
+function renderName(){ renderRecipes(INDEX.filter(x=> !x.e.raw && x.e.sym===$('revChord').value),'nameResults'); }
+
+/* ---------- mode tab ---------- */
+let modeCur='Lydian';
+function buildModeTabs(){ const t=$('modeTabs'); t.innerHTML='';
+  Object.keys(MODES).forEach(m=>{ const b=document.createElement('button'); b.className='seg'+(m===modeCur?' on':''); b.textContent=m;
+    b.addEventListener('click',()=>{ modeCur=m; buildModeTabs(); buildModeBody(); }); t.appendChild(b); }); }
+function buildModeBody(){ const root=curRoot(), box=$('modeBody'), md=MODES[modeCur];
+  box.innerHTML=`<p class="mode-desc">${md.desc}</p>`;
+  md.combos.forEach(([low,iv,upq])=>{ const e=low==='dim'?LOCRIAN:DATA[`${low}|${iv}|${upq}`];
+    const up=buildTriad(root,(low==='dim'?'maj':upq),iv), upQ=low==='dim'?'':(upq==='maj'?'':'m');
+    const lowName=root.name+(low==='maj'?'':low==='min'?'m':'dim');
+    const c=document.createElement('div'); c.className='combo'; c.style.marginBottom='.5rem';
+    c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
+      `<span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span><span class="cnote">${e.warn?'⚠ ':''}${e.mode}</span>`;
+    c.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); window.scrollTo({top:0,behavior:'smooth'}); }); box.appendChild(c); });
+}
+
+/* ---------- list tab ---------- */
+let tblMode='maj';
+function buildTblTabs(){ const t=$('tblTabs'); t.innerHTML='';
+  [['maj','下＝maj'],['min','下＝min'],['dim','下＝dim（Locrian）']].forEach(([v,lab])=>{ const b=document.createElement('button'); b.className='seg'+(v===tblMode?' on':''); b.textContent=lab;
+    b.addEventListener('click',()=>{ tblMode=v; buildTblTabs(); buildSysTable(); }); t.appendChild(b); }); }
+function buildSysTable(){ const tb=$('sysBody'); tb.innerHTML=''; const root=curRoot();
+  if(tblMode==='dim'){ addSysRow(tb,'dim','b2','maj',LOCRIAN,root,'b2 上','maj'); return; }
+  IVORDER.forEach(iv=> ['maj','min'].forEach(upq=>{ const e=DATA[`${tblMode}|${iv}|${upq}`]; addSysRow(tb,tblMode,iv,upq,e,root,iv+' 上',upq); }));
+}
+function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
+  const upTriad=buildTriad(root,(low==='dim'?'maj':upq),iv), lower=buildTriad(root,(low==='dim'?'dim':low),null);
+  const seen=new Set(),uniq=[]; [...lower,...upTriad].forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name);uniq.push(n);} });
+  uniq.sort((a,b)=>((a.pc-root.pc+12)%12)-((b.pc-root.pc+12)%12));
+  const degs=uniq.map(n=>degree(root,n)).join(' ');
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td><td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span></td><td class="degs">${degs}</td><td class="md${e.warn?' warn':''}">${e.warn?'⚠ ':''}${e.mode}</td>`;
+  tr.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); window.scrollTo({top:0,behavior:'smooth'}); });
+  tb.appendChild(tr);
+}
+
+/* ---------- key tab + foundation ---------- */
 const ROMAN=['I','II','III','IV','V','VI','VII'];
-(function buildKeyControls(){
-  const kt=$('keyTonic');
+(function(){ const kt=$('keyTonic');
   const none=document.createElement('option'); none.value=''; none.textContent='—（指定なし）'; kt.appendChild(none);
   for(let pc=0;pc<12;pc++){ const o=document.createElement('option'); o.value=pc; o.textContent=ROOT_SHARP[pc]; kt.appendChild(o); }
-  const ks=$('keyScale');
-  const noneS=document.createElement('option'); noneS.value=''; noneS.textContent='—'; ks.appendChild(noneS);
+  const ks=$('keyScale'); const noneS=document.createElement('option'); noneS.value=''; noneS.textContent='—'; ks.appendChild(noneS);
   Object.keys(SCALES).forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=SCALE_LABEL[k]; ks.appendChild(o); });
   kt.addEventListener('change',()=>{ st.keyPc = kt.value===''?null:+kt.value; relabelKeyTonic(); onKeyChange(); });
   ks.addEventListener('change',()=>{ st.keyScale=ks.value; relabelKeyTonic(); onKeyChange(); });
 })();
-function relabelKeyTonic(){
-  const kt=$('keyTonic'), sc=st.keyScale||'major';
-  for(const o of kt.options){ if(o.value!=='') o.textContent=tonicSpelling(+o.value, sc); }
-}
-function onKeyChange(){ renderKeyView(); render(); saveURL(); }
+function relabelKeyTonic(){ const kt=$('keyTonic'), sc=st.keyScale||'major'; for(const o of kt.options){ if(o.value!=='') o.textContent=tonicSpelling(+o.value, sc); } }
+function onKeyChange(){ renderKeyView(); render(); if(st.tab!=='key') {} saveURL(); }
 function renderKeyView(){
   const box=$('keyResults'), link=$('subLink');
   if(keyActive()){
     link.href=`https://chaudepark.github.io/scale-reference/?root=${ROOT_SHARP[st.keyPc]}&scale=${st.keyScale}`;
-    link.style.display='inline-flex';
-    link.textContent=`🎚 サブベースで ${tonicSpelling(st.keyPc,st.keyScale)} ${SCALE_LABEL[st.keyScale]} を開く`;
-  } else { link.style.display='none'; }
-  if(!keyActive()){ box.innerHTML='<div class="rev-empty">キーとスケールを選ぶと、そのキーに収まる拡張ボイシングを度数別に一覧します。</div>'; return; }
-  const degs=keyDegrees(tonicSpelling(st.keyPc,st.keyScale), st.keyScale);
-  const ks=new Set(degs.map(d=>d.pc));
+    link.style.display='inline-flex'; link.textContent=`🎚 サブベースで ${tonicSpelling(st.keyPc,st.keyScale)} ${SCALE_LABEL[st.keyScale]} を開く`;
+  } else link.style.display='none';
+  if(!keyActive()){ box.innerHTML='<div class="empty">上の「曲の土台 — キー」を選ぶ（またはサブベースツールからのリンクで開く）と、そのキーで使える色がここに並びます。</div>'; return; }
+  const degs=keyDegrees(tonicSpelling(st.keyPc,st.keyScale), st.keyScale), ks=new Set(degs.map(d=>d.pc));
   box.innerHTML='';
-  degs.forEach((dn,di)=>{
-    const hits=INDEX.filter(x=> [...voicingPcs(dn.pc,x.low,x.iv,x.upq)].every(pc=>ks.has(pc)));
-    if(!hits.length) return;
-    hits.sort((a,b)=> a.degs.length-b.degs.length);
-    const grp=document.createElement('div');
+  degs.forEach((dn,di)=>{ const hits=INDEX.filter(x=> [...voicingPcs(dn.pc,x.low,x.iv,x.upq)].every(pc=>ks.has(pc)));
+    if(!hits.length) return; hits.sort((a,b)=>a.degs.length-b.degs.length);
+    const grp=document.createElement('div'); grp.className='key-deg';
     let html=`<div class="key-deg-h"><b>${ROMAN[di]||''}</b>${dn.name}</div><div class="key-chips">`;
-    hits.forEach(x=>{
-      const up=buildTriad(dn, x.low==='dim'?'maj':x.upq, x.iv);
-      const upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
-      const lowName=dn.name+(x.low==='maj'?'':x.low==='min'?'m':'dim');
-      const sym=x.e.raw?x.e.sym:dn.name+x.e.sym;
+    hits.forEach(x=>{ const up=buildTriad(dn,x.low==='dim'?'maj':x.upq,x.iv), upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
+      const lowName=dn.name+(x.low==='maj'?'':x.low==='min'?'m':'dim'), sym=x.e.raw?x.e.sym:dn.name+x.e.sym;
       html+=`<button class="key-chip${x.e.warn?' warn':''}" data-root="${dn.name}" data-low="${x.low}" data-iv="${x.iv}" data-upq="${x.upq}">`+
-            `<span class="kc-slash"><span class="u">${up[0].name}${upQ}</span>/<span class="l">${lowName}</span></span>`+
-            `<span class="kc-sym">${sym}</span></button>`;
-    });
-    html+='</div>'; grp.innerHTML=html; box.appendChild(grp);
-  });
-  box.querySelectorAll('.key-chip').forEach(b=> b.addEventListener('click',()=>{
-    st.rootName=b.dataset.root; st.low=b.dataset.low; st.iv=b.dataset.iv; st.upq=b.dataset.upq;
-    normalizeForDim(); setDir('fwd'); render();
-    document.querySelector('.card').scrollIntoView({behavior:'smooth',block:'start'});
-  }));
+        `<span class="kc-slash"><span class="u">${up[0].name}${upQ}</span>/<span class="l">${lowName}</span></span><span class="kc-sym">${sym}</span></button>`; });
+    html+='</div>'; grp.innerHTML=html; box.appendChild(grp); });
+  box.querySelectorAll('.key-chip').forEach(b=> b.addEventListener('click',()=>{ loadVoicing(b.dataset.root,b.dataset.low,b.dataset.iv,b.dataset.upq); window.scrollTo({top:0,behavior:'smooth'}); }));
 }
 
-/* ---------- URL persist (root/scale shared with the sub-bass tool) ---------- */
-function saveURL(){
-  const p=new URLSearchParams();
-  p.set('x', st.rootName); p.set('l',st.low); p.set('i',st.iv); p.set('q',st.upq);
-  if(st.dir==='rev') p.set('d','rev');
-  if(keyActive()){ p.set('root', ROOT_SHARP[st.keyPc]); p.set('scale', st.keyScale); }
+/* ---------- tabs ---------- */
+function setTab(t){ st.tab=t;
+  document.querySelectorAll('.tabpanel').forEach(p=> p.hidden = p.dataset.tab!==t);
+  $('tabbar').querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===t));
+  refreshTab(); saveURL();
+}
+function refreshTab(){ const t=st.tab;
+  if(t==='key') renderKeyView(); else if(t==='color') revColorResults(); else if(t==='name') renderName();
+  else if(t==='mode') buildModeBody(); else if(t==='list') buildSysTable();
+}
+$('tabbar').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=> setTab(b.dataset.v)));
+
+/* ---------- URL ---------- */
+function saveURL(){ const p=new URLSearchParams();
+  p.set('x',st.rootName); p.set('l',st.low); p.set('i',st.iv); p.set('q',st.upq);
+  if(st.bass==='single') p.set('b','1'); if(st.tab&&st.tab!=='key') p.set('t',st.tab);
+  if(keyActive()){ p.set('root',ROOT_SHARP[st.keyPc]); p.set('scale',st.keyScale); }
   history.replaceState(null,'','?'+p.toString());
 }
-function loadURL(){
-  const p=new URLSearchParams(location.search);
-  // key context (shared vocabulary with the sub-bass tool)
-  if(p.has('scale') && SCALES[p.get('scale')]) st.keyScale=p.get('scale');
+function loadURL(){ const p=new URLSearchParams(location.search);
+  if(p.has('scale')&&SCALES[p.get('scale')]) st.keyScale=p.get('scale');
   if(p.has('root')){ const i=ROOT_SHARP.indexOf(p.get('root')); st.keyPc = i>=0 ? i : noteFromName(p.get('root')).pc; }
-  // explorer voicing root: explicit x, else legacy r index, else key tonic
   if(p.has('x')) st.rootName=p.get('x');
   else if(p.has('r')){ const i=+p.get('r'); if(i>=0&&i<12) st.rootName=LEGACY_ROOTS[i]; }
   else if(st.keyPc!=null) st.rootName=tonicSpelling(st.keyPc, st.keyScale||'major');
   if(p.has('l')&&['maj','min','dim'].includes(p.get('l'))) st.low=p.get('l');
   if(p.has('i')) st.iv=p.get('i');
   if(p.has('q')&&['maj','min'].includes(p.get('q'))) st.upq=p.get('q');
-  if(p.get('d')==='rev') st.dir='rev';
+  if(p.get('b')==='1') st.bass='single';
+  if(p.has('t')&&['key','build','color','name','mode','list'].includes(p.get('t'))) st.tab=p.get('t');
+  else if(st.keyPc!=null) st.tab='key';
+  // minimal-operation: landing with just a key (no explicit voicing) → auto-pick
+  // the first in-key voicing on the tonic so the hero shows a usable color at once
+  if(keyActive() && !p.has('l') && !p.has('x') && !p.has('r')){
+    const tonic=tonicSpelling(st.keyPc,st.keyScale), tpc=noteFromName(tonic).pc, ks=keySet();
+    const hit=INDEX.find(x=> [...voicingPcs(tpc,x.low,x.iv,x.upq)].every(pc=>ks.has(pc)));
+    if(hit){ st.rootName=tonic; st.low=hit.low; st.iv=hit.iv; st.upq=hit.upq; }
+  }
   normalizeForDim();
 }
 
 /* ---------- init ---------- */
 loadURL();
-buildTblTabs(); buildSysTable();
-buildModeTabs(); buildModeBody();
+buildTblTabs(); buildModeTabs();
 $('keyTonic').value = st.keyPc==null ? '' : String(st.keyPc);
 $('keyScale').value = st.keyScale || '';
-relabelKeyTonic();
-renderKeyView();
+$('revLow').querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x.dataset.v===revLow));
+relabelKeyTonic(); renderKeyView();
 render();
-setDir(st.dir);
+setTab(st.tab);
 </script>
 </body>
 </html>
