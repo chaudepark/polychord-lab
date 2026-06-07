@@ -54,7 +54,7 @@
   /* ---- foundation bar ---- */
   .foundation{display:flex; flex-wrap:wrap; gap:.8rem 1.6rem; align-items:flex-end; padding-bottom:1rem; margin-bottom:1.1rem; border-bottom:1px solid var(--border)}
   #subLink{margin-left:auto}
-  .linkchip{font-size:.68rem;font-weight:700;color:var(--both);background:rgba(67,196,106,.13);border-radius:6px;padding:.12rem .45rem;align-self:center}
+  .linkchip{font-size:.68rem;font-weight:700;color:var(--both);background:rgba(67,196,106,.13);border-radius:6px;padding:.18rem .5rem;align-self:flex-end;margin-bottom:.28rem}
 
   /* ---- hero result (sticky) ---- */
   .hero{margin-top:1rem}
@@ -126,6 +126,10 @@
   .combo .cslash{font-weight:800; font-size:1.02rem; white-space:nowrap}
   .combo .cslash .u{color:var(--up)} .combo .cslash .l{color:var(--low)}
   .combo .arr{color:var(--faint)} .combo .csym{font-weight:800; font-variant-numeric:tabular-nums}
+  .combo.active{border-color:var(--accent); background:rgba(110,168,254,.13); box-shadow:inset 0 0 0 1px var(--accent)}
+  .key-chip.active{border-color:var(--accent); background:rgba(110,168,254,.16); box-shadow:inset 0 0 0 1px var(--accent)}
+  table.sys tr.active td{background:rgba(110,168,254,.14)}
+  table.sys tr.active td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   .combo .cnote{color:var(--muted); font-size:.78rem; margin-left:auto; font-variant-numeric:tabular-nums}
 
   /* key palette */
@@ -514,7 +518,15 @@ function render(){
 
   drawKeyboard(root, lower, upTriad);
 
+  markActive();
   saveURL();
+}
+// highlight the current voicing wherever it appears in the picker (hero <-> picker link)
+function markActive(){
+  document.querySelectorAll('.picker [data-low]').forEach(el=>{
+    const m = el.dataset.low===st.low && el.dataset.iv===st.iv && el.dataset.upq===st.upq && (el.dataset.root==null || el.dataset.root===st.rootName);
+    el.classList.toggle('active', m);
+  });
 }
 
 /* ---------- keyboard ---------- */
@@ -568,13 +580,14 @@ function renderRecipes(list, boxId){
     const up=buildTriad(root, x.low==='dim'?'maj':x.upq, x.iv);
     const upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
     const lowName=root.name+(x.low==='maj'?'':x.low==='min'?'m':'dim');
-    const c=document.createElement('div'); c.className='combo';
+    const c=document.createElement('div'); c.className='combo'; c.dataset.low=x.low; c.dataset.iv=x.iv; c.dataset.upq=x.upq;
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
       `<span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:root.name+x.e.sym}</span>`+
       `<span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${x.degs.join(' ')}</span>`;
     c.addEventListener('click',()=>{ loadVoicing(root.name,x.low,x.iv,x.upq); });
     box.appendChild(c);
   });
+  markActive();
 }
 
 /* ---------- color tab ---------- */
@@ -606,10 +619,11 @@ function buildModeBody(){ const root=curRoot(), box=$('modeBody'), md=MODES[mode
   md.combos.forEach(([low,iv,upq])=>{ const e=low==='dim'?LOCRIAN:DATA[`${low}|${iv}|${upq}`];
     const up=buildTriad(root,(low==='dim'?'maj':upq),iv), upQ=low==='dim'?'':(upq==='maj'?'':'m');
     const lowName=root.name+(low==='maj'?'':low==='min'?'m':'dim');
-    const c=document.createElement('div'); c.className='combo'; c.style.marginBottom='.5rem';
+    const c=document.createElement('div'); c.className='combo'; c.style.marginBottom='.5rem'; c.dataset.low=low; c.dataset.iv=iv; c.dataset.upq=upq;
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
       `<span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span><span class="cnote">${e.warn?'⚠ ':''}${e.mode}</span>`;
     c.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); }); box.appendChild(c); });
+  markActive();
 }
 
 /* ---------- list tab ---------- */
@@ -620,13 +634,14 @@ function buildTblTabs(){ const t=$('tblTabs'); t.innerHTML='';
 function buildSysTable(){ const tb=$('sysBody'); tb.innerHTML=''; const root=curRoot();
   if(tblMode==='dim'){ addSysRow(tb,'dim','b2','maj',LOCRIAN,root,'b2 上','maj'); return; }
   IVORDER.forEach(iv=> ['maj','min'].forEach(upq=>{ const e=DATA[`${tblMode}|${iv}|${upq}`]; addSysRow(tb,tblMode,iv,upq,e,root,iv+' 上',upq); }));
+  markActive();
 }
 function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
   const upTriad=buildTriad(root,(low==='dim'?'maj':upq),iv), lower=buildTriad(root,(low==='dim'?'dim':low),null);
   const seen=new Set(),uniq=[]; [...lower,...upTriad].forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name);uniq.push(n);} });
   uniq.sort((a,b)=>((a.pc-root.pc+12)%12)-((b.pc-root.pc+12)%12));
   const degs=uniq.map(n=>degree(root,n)).join(' ');
-  const tr=document.createElement('tr');
+  const tr=document.createElement('tr'); tr.dataset.low=low; tr.dataset.iv=iv; tr.dataset.upq=upq;
   tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td><td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span></td><td class="degs">${degs}</td><td class="md${e.warn?' warn':''}">${e.warn?'⚠ ':''}${e.mode}</td>`;
   tr.addEventListener('click',()=>{ loadVoicing(root.name,low,iv,upq); });
   tb.appendChild(tr);
@@ -643,7 +658,21 @@ const ROMAN=['I','II','III','IV','V','VI','VII'];
   ks.addEventListener('change',()=>{ st.keyScale=ks.value; relabelKeyTonic(); onKeyChange(); });
 })();
 function relabelKeyTonic(){ const kt=$('keyTonic'), sc=st.keyScale||'major'; for(const o of kt.options){ if(o.value!=='') o.textContent=tonicSpelling(+o.value, sc); } }
-function onKeyChange(){ setLinked(false); renderKeyView(); render(); saveURL(); }
+// jump to the first in-key voicing on the tonic (used when landing/switching keys)
+function pickInKeyTonic(){
+  if(!keyActive()) return false;
+  const tonic=tonicSpelling(st.keyPc,st.keyScale), tpc=noteFromName(tonic).pc, ks=keySet();
+  const hit=INDEX.find(x=> [...voicingPcs(tpc,x.low,x.iv,x.upq)].every(pc=>ks.has(pc)));
+  if(hit){ st.rootName=tonic; st.low=hit.low; st.iv=hit.iv; st.upq=hit.upq; normalizeForDim(); return true; }
+  return false;
+}
+// keep the current voicing if it already fits the key; otherwise jump to an in-key one
+function ensureInKey(){
+  if(!keyActive()) return;
+  const ks=keySet(); const inKey=[...voicingPcs(curRoot().pc, st.low, st.iv, st.upq)].every(pc=>ks.has(pc));
+  if(!inKey) pickInKeyTonic();
+}
+function onKeyChange(){ setLinked(false); ensureInKey(); renderKeyView(); render(); refreshTab(); saveURL(); }
 function renderKeyView(){
   const box=$('keyResults'), link=$('subLink');
   if(keyActive()){
@@ -663,6 +692,7 @@ function renderKeyView(){
         `<span class="kc-slash"><span class="u">${up[0].name}${upQ}</span>/<span class="l">${lowName}</span></span><span class="kc-sym">${sym}</span></button>`; });
     html+='</div>'; grp.innerHTML=html; box.appendChild(grp); });
   box.querySelectorAll('.key-chip').forEach(b=> b.addEventListener('click',()=>{ loadVoicing(b.dataset.root,b.dataset.low,b.dataset.iv,b.dataset.upq); }));
+  markActive();
 }
 
 /* ---------- tabs ---------- */
@@ -673,7 +703,8 @@ function setTab(t){ st.tab=t;
 }
 function refreshTab(){ const t=st.tab;
   if(t==='key') renderKeyView(); else if(t==='color') revColorResults(); else if(t==='name') renderName();
-  else if(t==='mode') buildModeBody(); else if(t==='list') buildSysTable();
+  else if(t==='mode') buildModeBody();
+  else if(t==='list'){ tblMode = (st.low==='dim'?'dim':st.low); buildTblTabs(); buildSysTable(); }
 }
 $('tabbar').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=> setTab(b.dataset.v)));
 
@@ -687,7 +718,7 @@ function readSubbassKey(){ try{ const v=localStorage.getItem('subbass-key'); if(
 }catch(e){ return null; } }
 function setLinked(on){ subbassLinked=on; const c=$('linkChip'); if(c) c.hidden=!on; }
 function applySubbass(k){
-  if(k){ st.keyPc=k.pc; st.keyScale=k.scale; setLinked(true); } else { st.keyPc=null; st.keyScale=''; setLinked(false); }
+  if(k){ st.keyPc=k.pc; st.keyScale=k.scale; setLinked(true); ensureInKey(); } else { st.keyPc=null; st.keyScale=''; setLinked(false); }
   $('keyTonic').value = st.keyPc==null?'':String(st.keyPc); $('keyScale').value=st.keyScale||''; relabelKeyTonic();
   renderKeyView(); render(); refreshTab();
 }
@@ -717,11 +748,7 @@ function loadURL(){ const p=new URLSearchParams(location.search);
   else if(st.keyPc!=null) st.tab='key';
   // minimal-operation: landing with just a key (no explicit voicing) → auto-pick
   // the first in-key voicing on the tonic so the hero shows a usable color at once
-  if(keyActive() && !p.has('l') && !p.has('x') && !p.has('r')){
-    const tonic=tonicSpelling(st.keyPc,st.keyScale), tpc=noteFromName(tonic).pc, ks=keySet();
-    const hit=INDEX.find(x=> [...voicingPcs(tpc,x.low,x.iv,x.upq)].every(pc=>ks.has(pc)));
-    if(hit){ st.rootName=tonic; st.low=hit.low; st.iv=hit.iv; st.upq=hit.upq; }
-  }
+  if(keyActive() && !p.has('l') && !p.has('x') && !p.has('r')) pickInKeyTonic();
   normalizeForDim();
 }
 
