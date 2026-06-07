@@ -103,6 +103,21 @@
   .rev-count{font-size:.72rem; color:var(--muted); margin:.2rem 0 .2rem}
   .combo .cnote{font-variant-numeric:tabular-nums}
 
+  /* ---- key-fit chip + key view ---- */
+  .keyfit{font-size:.72rem; font-weight:700; border-radius:6px; padding:.14rem .5rem}
+  .keyfit.in{color:var(--both); background:rgba(67,196,106,.14)}
+  .keyfit.out{color:var(--muted); background:rgba(139,147,163,.13)}
+  .key-view{margin-top:1rem; display:flex; flex-direction:column; gap:.9rem}
+  .key-deg-h{font-size:.8rem; color:var(--muted); font-weight:700; margin-bottom:.45rem}
+  .key-deg-h b{color:var(--accent); font-size:1.05em; margin-right:.35rem; font-variant-numeric:tabular-nums}
+  .key-chips{display:flex; flex-wrap:wrap; gap:.5rem}
+  .key-chip{display:inline-flex; flex-direction:column; align-items:flex-start; gap:.12rem; background:var(--card2); border:1px solid var(--border2); border-radius:9px; padding:.4rem .6rem; cursor:pointer; font:inherit; color:var(--text)}
+  .key-chip:hover{border-color:var(--accent)}
+  .key-chip.warn{border-color:rgba(224,83,58,.5)}
+  .key-chip .kc-slash{font-weight:800; font-size:.9rem}
+  .key-chip .kc-slash .u{color:var(--up)} .key-chip .kc-slash .l{color:var(--low)}
+  .key-chip .kc-sym{font-size:.76rem; color:var(--muted); font-variant-numeric:tabular-nums}
+
   /* ---- keyboard ---- */
   .kbd{position:relative; height:120px; margin-top:1.4rem; user-select:none; overflow-x:auto; padding-bottom:4px}
   .kbd-inner{position:relative; height:116px; display:flex}
@@ -210,7 +225,10 @@
       <div class="slash" id="slash"></div>
       <div class="rmeta">
         <div class="sym" id="sym"></div>
-        <div class="modechip" id="mode"></div>
+        <div style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
+          <div class="modechip" id="mode"></div>
+          <span class="keyfit" id="keyfit" hidden></span>
+        </div>
       </div>
     </div>
 
@@ -264,6 +282,24 @@
 
     <div class="rev-results" id="revResults"></div>
   </div>
+</div>
+
+<!-- ============ KEY CONTEXT / SUB-BASS LINK ============ -->
+<h2>キーで探す ／ サブベース連携</h2>
+<div class="card">
+  <div class="ex-top" style="border-bottom:none;margin-bottom:.6rem;padding-bottom:0">
+    <div class="cgroup">
+      <span class="clabel">キー</span>
+      <div class="segs"><select id="keyTonic" class="seg"></select></div>
+    </div>
+    <div class="cgroup">
+      <span class="clabel">スケール</span>
+      <div class="segs"><select id="keyScale" class="seg"></select></div>
+    </div>
+    <a id="subLink" class="btn ghost" target="_blank" rel="noopener" style="display:none"></a>
+  </div>
+  <p class="mode-desc" id="keyHint">キーとスケールを選ぶと、そのキーに収まる拡張ボイシングを度数別に一覧します。各チップをクリックで探索器へ。サブベースツールでキーを選べばリンクで引き継げます。</p>
+  <div class="key-view" id="keyResults"></div>
 </div>
 
 <!-- ============ SYSTEM TABLE ============ -->
@@ -329,18 +365,51 @@
 /* ---------- music helpers (proper spelling) ---------- */
 const LETTERS=['C','D','E','F','G','A','B'];
 const LPC=[0,2,4,5,7,9,11];                 // natural pc of each letter
-const ACC={0:'',1:'#',2:'##',11:'b',10:'bb'};
-// roots: [letterIndex, pc]
-const ROOTS=[['C',0,0],['Db',1,1],['D',1,2],['Eb',2,3],['E',2,4],['F',3,5],
-             ['F#',3,6],['G',4,7],['Ab',5,8],['A',5,9],['Bb',6,10],['B',6,11]];
+const ACC={0:'',1:'#',2:'##',3:'###',9:'bbb',10:'bb',11:'b'};
+// chromatic dropdown options (both spellings)
+const ROOT_OPTS=['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
+// legacy ?r= index order (old bookmarks) + sub-bass exchange spelling (sharps, indexed by pc)
+const LEGACY_ROOTS=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+const ROOT_SHARP=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+// preferred key-tonic spelling per pc (mirrors the sub-bass tool)
+const MAJ_PC=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+const MIN_PC=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
+const MAJORISH=new Set(['major','lydian','mixolydian']);
+// scale patterns (shared vocabulary with the sub-bass tool)
+const SCALES={ major:[0,2,4,5,7,9,11], minor:[0,2,3,5,7,8,10], hminor:[0,2,3,5,7,8,11], mminor:[0,2,3,5,7,9,11],
+  dorian:[0,2,3,5,7,9,10], phrygian:[0,1,3,5,7,8,10], lydian:[0,2,4,6,7,9,11], mixolydian:[0,2,4,5,7,9,10], locrian:[0,1,3,5,6,8,10] };
+const SCALE_LABEL={ major:'major', minor:'minor (natural)', hminor:'harmonic minor', mminor:'melodic minor',
+  dorian:'Dorian', phrygian:'Phrygian', lydian:'Lydian', mixolydian:'Mixolydian', locrian:'Locrian' };
 // interval name -> [letterSteps, semitones]
 const IVAL={ 'b2':[1,1],'M2':[1,2],'M3':[2,4],'P4':[3,5],'P5':[4,7],'M6':[5,9],'m7':[6,10],'M7':[6,11] };
-// triad quality -> [3rd interval, 5th interval]
+const IVSEMI={ b2:1, M2:2, M3:4, P4:5, P5:7, M6:9, m7:10, M7:11 };
+// triad quality -> [3rd interval, 5th interval] (for spelling) and pitch-class offsets (for set math)
 const TRIAD={ maj:[[2,4],[4,7]], min:[[2,3],[4,7]], dim:[[2,3],[4,6]] };
+const TRIAD_PC={ maj:[0,4,7], min:[0,3,7], dim:[0,3,6] };
 
 function noteName(li,pc){ const a=((pc-LPC[li])%12+12)%12; return LETTERS[li]+(ACC[a]??'?'); }
 function transpose(note,steps,semis){ const li=(note.li+steps)%7; const pc=((note.pc+semis)%12+12)%12; return {li,pc,name:noteName(li,pc)}; }
-function rootNote(idx){ const r=ROOTS[idx]; return {li:LETTERS.indexOf(r[0][0]), pc:r[2], name:r[0]}; }
+function noteFromName(name){ const li=LETTERS.indexOf(name[0]); let pc=LPC[li];
+  for(const ch of name.slice(1)) pc += (ch==='#')?1 : (ch==='b'||ch==='♭')?-1 : 0;
+  return {li, pc:((pc%12)+12)%12, name}; }
+function curRoot(){ return noteFromName(st.rootName); }
+// pitch-class set of a voicing rooted at rootPc
+function voicingPcs(rootPc, low, iv, upq){
+  const s=new Set();
+  TRIAD_PC[low==='dim'?'dim':low].forEach(o=> s.add((rootPc+o)%12));
+  const ur=(rootPc+IVSEMI[iv])%12;
+  TRIAD_PC[low==='dim'?'maj':upq].forEach(o=> s.add((ur+o)%12));
+  return s;
+}
+function tonicSpelling(pc, scaleKey){ return (MAJORISH.has(scaleKey)?MAJ_PC:MIN_PC)[pc]; }
+// proper-spelled scale degrees (one note per letter)
+function keyDegrees(tonicName, scaleKey){
+  const t=noteFromName(tonicName), pat=SCALES[scaleKey], out=[];
+  for(let d=0; d<pat.length; d++){ const li=(t.li+d)%7, pc=(t.pc+pat[d])%12; out.push({li,pc,name:noteName(li,pc)}); }
+  return out;
+}
+function keyActive(){ return st.keyPc!=null && st.keyScale && SCALES[st.keyScale]; }
+function keySet(){ return new Set(keyDegrees(tonicSpelling(st.keyPc,st.keyScale), st.keyScale).map(d=>d.pc)); }
 
 function buildTriad(root, quality, upRootIv){
   let r=root;
@@ -409,12 +478,16 @@ const DATA={
 const LOCRIAN={sym:'dim(♭9,11,♭13)',mode:'Locrian',warn:1,note:'maj3も♭7も無いので属7ではない。ロクリアン的な dim/ø 系クラスター'};
 
 /* ---------- state ---------- */
-let st={rootIdx:0, low:'maj', iv:'M2', upq:'maj', dir:'fwd'};
+let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', dir:'fwd', keyPc:null, keyScale:''};
 
 /* ---------- build controls ---------- */
 const $=id=>document.getElementById(id);
 const rootSel=$('root');
-ROOTS.forEach((r,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=r[0]; rootSel.appendChild(o); });
+ROOT_OPTS.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; rootSel.appendChild(o); });
+function syncRootSelect(){
+  if(![...rootSel.options].some(o=>o.value===st.rootName)){ const o=document.createElement('option'); o.value=st.rootName; o.textContent=st.rootName; rootSel.appendChild(o); }
+  rootSel.value=st.rootName;
+}
 const upivBox=$('upiv');
 IVORDER.forEach(iv=>{ const b=document.createElement('button'); b.className='seg'; b.dataset.v=iv; b.textContent=iv; b.title=IVLABEL[iv]; upivBox.appendChild(b); });
 
@@ -429,7 +502,7 @@ function normalizeForDim(){
   else if(st.iv==='b2'){ st.iv='M2'; }
 }
 wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq');
-rootSel.addEventListener('change',()=>{ st.rootIdx=+rootSel.value; render(); if(st.dir==='rev') refreshRev(); });
+rootSel.addEventListener('change',()=>{ st.rootName=rootSel.value; render(); if(st.dir==='rev') refreshRev(); });
 
 /* ---------- render ---------- */
 function currentEntry(){
@@ -438,7 +511,7 @@ function currentEntry(){
 }
 function render(){
   // sync control active states
-  rootSel.value=st.rootIdx;
+  syncRootSelect();
   setActive('lowq','low'); setActive('upq','upq');
   // upiv: show b2 only in dim mode
   upivBox.querySelectorAll('.seg').forEach(b=>{
@@ -449,7 +522,7 @@ function render(){
   // disable upq toggle in dim
   $('upq').querySelectorAll('.seg').forEach(b=> b.style.opacity = st.low==='dim'?'.35':'1');
 
-  const root=rootNote(st.rootIdx);
+  const root=curRoot();
   const ivUse = st.low==='dim' ? 'b2' : st.iv;
   const lower=buildTriad(root, st.low==='dim'?'dim':st.low, null);
   const upper=buildTriad(root, 'maj', ivUse).map(n=>n); // upper quality:
@@ -465,6 +538,14 @@ function render(){
   // chord symbol
   $('sym').textContent = entry ? (entry.raw ? entry.sym : root.name+entry.sym) : '?';
   const mode=$('mode'); mode.textContent=entry?entry.mode:''; mode.className='modechip'+(entry&&entry.warn?' warn':'');
+  // key-fit indicator
+  const kf=$('keyfit');
+  if(keyActive()){
+    const ks=keySet();
+    const inKey=[...voicingPcs(root.pc, st.low, st.iv, st.upq)].every(pc=>ks.has(pc));
+    kf.hidden=false; kf.className='keyfit '+(inKey?'in':'out');
+    kf.textContent=inKey? `✓ ${tonicSpelling(st.keyPc,st.keyScale)} ${SCALE_LABEL[st.keyScale]} 内` : '✗ キー外';
+  } else { kf.hidden=true; }
 
   // notes + degrees
   const lowPc=new Set(lower.map(n=>n.pc));
@@ -567,7 +648,7 @@ function buildTblTabs(){
 }
 function buildSysTable(){
   const tb=$('sysBody'); tb.innerHTML='';
-  const root=rootNote(st.rootIdx);
+  const root=curRoot();
   if(tblMode==='dim'){
     addSysRow(tb,'dim','b2','maj',LOCRIAN,root,'b2 上','maj');
     return;
@@ -623,7 +704,7 @@ function buildModeTabs(){
   });
 }
 function buildModeBody(){
-  const root=rootNote(st.rootIdx);
+  const root=curRoot();
   const box=$('modeBody'); const md=MODES[modeCur];
   box.innerHTML=`<p class="mode-desc">${md.desc}</p>`;
   md.combos.forEach(([low,iv,upq])=>{
@@ -645,7 +726,7 @@ function buildModeBody(){
 const REV_DEGS=['♭9','9','#9','11','#11','♭5','#5','♭13','13','♭7','maj7'];
 const INDEX=[];
 (function buildIndex(){
-  const C=rootNote(0);
+  const C=noteFromName("C");
   const add=(low,iv,upq,e)=>{
     const lower=buildTriad(C, low==='dim'?'dim':low, null);
     const up=buildTriad(C, low==='dim'?'maj':upq, iv);
@@ -706,7 +787,7 @@ function revColorResults(){
 function renderRecipes(list){
   const box=$('revResults'); box.innerHTML='';
   if(!list.length){ box.innerHTML='<div class="rev-empty">この体系（三和音2つ）で該当するボイシングはありません。</div>'; return; }
-  const root=rootNote(st.rootIdx);
+  const root=curRoot();
   const cnt=document.createElement('div'); cnt.className='rev-count'; cnt.textContent=`${list.length} 件`; box.appendChild(cnt);
   list.forEach(x=>{
     const up=buildTriad(root, x.low==='dim'?'maj':x.upq, x.iv);
@@ -721,15 +802,75 @@ function renderRecipes(list){
   });
 }
 
-/* ---------- URL persist ---------- */
+/* ---------- key context / sub-bass link ---------- */
+const ROMAN=['I','II','III','IV','V','VI','VII'];
+(function buildKeyControls(){
+  const kt=$('keyTonic');
+  const none=document.createElement('option'); none.value=''; none.textContent='—（指定なし）'; kt.appendChild(none);
+  for(let pc=0;pc<12;pc++){ const o=document.createElement('option'); o.value=pc; o.textContent=ROOT_SHARP[pc]; kt.appendChild(o); }
+  const ks=$('keyScale');
+  const noneS=document.createElement('option'); noneS.value=''; noneS.textContent='—'; ks.appendChild(noneS);
+  Object.keys(SCALES).forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=SCALE_LABEL[k]; ks.appendChild(o); });
+  kt.addEventListener('change',()=>{ st.keyPc = kt.value===''?null:+kt.value; relabelKeyTonic(); onKeyChange(); });
+  ks.addEventListener('change',()=>{ st.keyScale=ks.value; relabelKeyTonic(); onKeyChange(); });
+})();
+function relabelKeyTonic(){
+  const kt=$('keyTonic'), sc=st.keyScale||'major';
+  for(const o of kt.options){ if(o.value!=='') o.textContent=tonicSpelling(+o.value, sc); }
+}
+function onKeyChange(){ renderKeyView(); render(); saveURL(); }
+function renderKeyView(){
+  const box=$('keyResults'), link=$('subLink');
+  if(keyActive()){
+    link.href=`https://chaudepark.github.io/scale-reference/?root=${ROOT_SHARP[st.keyPc]}&scale=${st.keyScale}`;
+    link.style.display='inline-flex';
+    link.textContent=`🎚 サブベースで ${tonicSpelling(st.keyPc,st.keyScale)} ${SCALE_LABEL[st.keyScale]} を開く`;
+  } else { link.style.display='none'; }
+  if(!keyActive()){ box.innerHTML='<div class="rev-empty">キーとスケールを選ぶと、そのキーに収まる拡張ボイシングを度数別に一覧します。</div>'; return; }
+  const degs=keyDegrees(tonicSpelling(st.keyPc,st.keyScale), st.keyScale);
+  const ks=new Set(degs.map(d=>d.pc));
+  box.innerHTML='';
+  degs.forEach((dn,di)=>{
+    const hits=INDEX.filter(x=> [...voicingPcs(dn.pc,x.low,x.iv,x.upq)].every(pc=>ks.has(pc)));
+    if(!hits.length) return;
+    hits.sort((a,b)=> a.degs.length-b.degs.length);
+    const grp=document.createElement('div');
+    let html=`<div class="key-deg-h"><b>${ROMAN[di]||''}</b>${dn.name}</div><div class="key-chips">`;
+    hits.forEach(x=>{
+      const up=buildTriad(dn, x.low==='dim'?'maj':x.upq, x.iv);
+      const upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
+      const lowName=dn.name+(x.low==='maj'?'':x.low==='min'?'m':'dim');
+      const sym=x.e.raw?x.e.sym:dn.name+x.e.sym;
+      html+=`<button class="key-chip${x.e.warn?' warn':''}" data-root="${dn.name}" data-low="${x.low}" data-iv="${x.iv}" data-upq="${x.upq}">`+
+            `<span class="kc-slash"><span class="u">${up[0].name}${upQ}</span>/<span class="l">${lowName}</span></span>`+
+            `<span class="kc-sym">${sym}</span></button>`;
+    });
+    html+='</div>'; grp.innerHTML=html; box.appendChild(grp);
+  });
+  box.querySelectorAll('.key-chip').forEach(b=> b.addEventListener('click',()=>{
+    st.rootName=b.dataset.root; st.low=b.dataset.low; st.iv=b.dataset.iv; st.upq=b.dataset.upq;
+    normalizeForDim(); setDir('fwd'); render();
+    document.querySelector('.card').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+}
+
+/* ---------- URL persist (root/scale shared with the sub-bass tool) ---------- */
 function saveURL(){
-  const p=new URLSearchParams({r:st.rootIdx,l:st.low,i:st.iv,q:st.upq});
+  const p=new URLSearchParams();
+  p.set('x', st.rootName); p.set('l',st.low); p.set('i',st.iv); p.set('q',st.upq);
   if(st.dir==='rev') p.set('d','rev');
+  if(keyActive()){ p.set('root', ROOT_SHARP[st.keyPc]); p.set('scale', st.keyScale); }
   history.replaceState(null,'','?'+p.toString());
 }
 function loadURL(){
   const p=new URLSearchParams(location.search);
-  if(p.has('r')) st.rootIdx=Math.min(11,Math.max(0,+p.get('r')||0));
+  // key context (shared vocabulary with the sub-bass tool)
+  if(p.has('scale') && SCALES[p.get('scale')]) st.keyScale=p.get('scale');
+  if(p.has('root')){ const i=ROOT_SHARP.indexOf(p.get('root')); st.keyPc = i>=0 ? i : noteFromName(p.get('root')).pc; }
+  // explorer voicing root: explicit x, else legacy r index, else key tonic
+  if(p.has('x')) st.rootName=p.get('x');
+  else if(p.has('r')){ const i=+p.get('r'); if(i>=0&&i<12) st.rootName=LEGACY_ROOTS[i]; }
+  else if(st.keyPc!=null) st.rootName=tonicSpelling(st.keyPc, st.keyScale||'major');
   if(p.has('l')&&['maj','min','dim'].includes(p.get('l'))) st.low=p.get('l');
   if(p.has('i')) st.iv=p.get('i');
   if(p.has('q')&&['maj','min'].includes(p.get('q'))) st.upq=p.get('q');
@@ -741,6 +882,10 @@ function loadURL(){
 loadURL();
 buildTblTabs(); buildSysTable();
 buildModeTabs(); buildModeBody();
+$('keyTonic').value = st.keyPc==null ? '' : String(st.keyPc);
+$('keyScale').value = st.keyScale || '';
+relabelKeyTonic();
+renderKeyView();
 render();
 setDir(st.dir);
 </script>
