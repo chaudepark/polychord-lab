@@ -230,6 +230,12 @@
         <button class="seg" data-v="single">単音ベース</button>
       </div>
     </div>
+    <div class="cgroup"><span class="clabel">上の音域</span>
+      <div class="segs" id="regmode">
+        <button class="seg" data-v="level">揃える</button>
+        <button class="seg" data-v="stack">積む</button>
+      </div>
+    </div>
     <button class="btn" id="play">▶ 試聴</button>
     <span class="legend">
       <span><i style="background:var(--low)"></i>下</span>
@@ -246,6 +252,7 @@
     <button class="seg" data-v="build">組み立てる</button>
     <button class="seg" data-v="color">色（度数）で</button>
     <button class="seg" data-v="name">コード名で</button>
+    <button class="seg" data-v="upper">上で探す</button>
     <button class="seg" data-v="mode">モードで</button>
     <button class="seg" data-v="list">一覧</button>
   </div>
@@ -291,6 +298,19 @@
       <div class="cgroup"><span class="clabel">目的の和音（X = ルート）</span><div class="segs"><select id="revChord" class="seg"></select></div></div>
     </div>
     <div class="results" id="nameResults"></div>
+  </div>
+
+  <!-- upper (fixed upper triad, moving bass) -->
+  <div class="tabpanel" data-tab="upper" hidden>
+    <p class="hint">上トライアド（色）を固定し、それを生むベース違いの和音を一覧します。上声を保ったままベースだけ動かす進行に。</p>
+    <div class="pickrow">
+      <div class="cgroup"><span class="clabel">上トライアド</span><div class="segs"><select id="upRootSel" class="seg"></select></div></div>
+      <div class="cgroup"><span class="clabel">種類</span>
+        <div class="segs" id="upQualSel"><button class="seg" data-v="maj">maj</button><button class="seg" data-v="min">min</button></div>
+      </div>
+      <button class="btn ghost" id="upFromCur" style="align-self:flex-end">今の上トライアドにする</button>
+    </div>
+    <div class="results" id="upperResults"></div>
   </div>
 
   <!-- mode -->
@@ -460,7 +480,7 @@ const MODES={
 };
 
 /* ---------- state ---------- */
-let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', bass:'triad', tab:'key', keyPc:null, keyScale:''};
+let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', bass:'triad', reg:'level', tab:'key', keyPc:null, keyScale:'', upRoot:null, upQual:'min'};
 const $=id=>document.getElementById(id);
 
 /* ---------- controls ---------- */
@@ -473,13 +493,13 @@ IVORDER.forEach(iv=>{ const b=document.createElement('button'); b.className='seg
 function normalizeForDim(){ if(st.low==='dim'){ st.iv='b2'; st.upq='maj'; } else if(st.iv==='b2'){ st.iv='M2'; } }
 function setActive(boxId,key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===st[key])); }
 function wireSegs(boxId, key){ $(boxId).querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ st[key]=b.dataset.v; if(key==='low') normalizeForDim(); render(); })); }
-wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq'); wireSegs('bassmode','bass');
+wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq'); wireSegs('bassmode','bass'); wireSegs('regmode','reg');
 rootSel.addEventListener('change',()=>{ st.rootName=rootSel.value; render(); refreshTab(); });
 
 /* ---------- render hero ---------- */
 function currentEntry(){ return st.low==='dim' ? LOCRIAN : DATA[`${st.low}|${st.iv}|${st.upq}`]; }
 function render(){
-  syncRootSelect(); setActive('lowq','low'); setActive('upq','upq'); setActive('bassmode','bass');
+  syncRootSelect(); setActive('lowq','low'); setActive('upq','upq'); setActive('bassmode','bass'); setActive('regmode','reg');
   upivBox.querySelectorAll('.seg').forEach(b=>{
     b.style.display = (st.low==='dim') ? (b.dataset.v==='M2'?'inline-block':'none') : 'inline-block';
     b.textContent = (st.low==='dim'&&b.dataset.v==='M2') ? 'b2' : b.dataset.v;
@@ -538,7 +558,9 @@ function drawKeyboard(root, lower, upper){
   const box=$('kbd'); box.innerHTML='';
   const base=48+root.pc;
   const lowMidi=lower.map(n=> base + ((n.pc-root.pc+12)%12));
-  const upRootMidi = base + 12 + ((upper[0].pc-root.pc+12)%12);
+  // upper triad: 'level' anchors it to a fixed mid octave (consistent register across
+  // chords) so clicking through a progression stays coherent; 'stack' is the literal stack.
+  const upRootMidi = st.reg==='level' ? 60 + upper[0].pc : base + 12 + ((upper[0].pc-root.pc+12)%12);
   const upMidi=upper.map(n=> upRootMidi + ((n.pc-upper[0].pc+12)%12));
   const lowSet=new Set(lowMidi), upSet=new Set(upMidi);
   window._chordMidi=[...lowMidi,...upMidi];
@@ -718,9 +740,52 @@ function setTab(t){ st.tab=t;
 function refreshTab(){ const t=st.tab;
   if(t==='key') renderKeyView(); else if(t==='color') revColorResults(); else if(t==='name') renderName();
   else if(t==='mode') buildModeBody();
+  else if(t==='upper'){ if(st.upRoot==null) syncUpperFromCurrent(); renderUpperFamily(); }
   else if(t==='list'){ tblMode = (st.low==='dim'?'dim':st.low); buildTblTabs(); buildSysTable(); }
 }
 $('tabbar').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=> setTab(b.dataset.v)));
+
+/* ---------- upper-triad family tab (fixed upper triad, moving bass) ---------- */
+(function(){ const sel=$('upRootSel');
+  for(let pc=0;pc<12;pc++){ const o=document.createElement('option'); o.value=pc; o.textContent=ROOT_SHARP[pc]; sel.appendChild(o); }
+  sel.addEventListener('change',()=>{ st.upRoot=+sel.value; renderUpperFamily(); });
+  $('upQualSel').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ st.upQual=b.dataset.v; renderUpperFamily(); }));
+  $('upFromCur').addEventListener('click',()=>{ syncUpperFromCurrent(); renderUpperFamily(); });
+})();
+function syncUpperFromCurrent(){
+  const r=curRoot(); st.upRoot=(r.pc + IVSEMI[st.low==='dim'?'b2':st.iv])%12; st.upQual = st.low==='dim'?'maj':st.upq;
+}
+function renderUpperFamily(){
+  const box=$('upperResults'); if(st.upRoot==null) syncUpperFromCurrent();
+  $('upRootSel').value=String(st.upRoot);
+  $('upQualSel').querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===st.upQual));
+  // every (bass, lower-quality, interval) in the system whose upper triad == chosen one
+  let items=[];
+  for(const low of ['maj','min']) for(const iv of IVORDER){ const e=DATA[`${low}|${iv}|${st.upQual}`]; if(!e) continue;
+    const bassPc=((st.upRoot - IVSEMI[iv])%12+12)%12; items.push({low,iv,upq:st.upQual,e,bassPc}); }
+  if(st.upQual==='maj'){ const bassPc=((st.upRoot-1)%12+12)%12; items.push({low:'dim',iv:'b2',upq:'maj',e:LOCRIAN,bassPc}); }
+  if(keyActive()){ const ks=keySet(); items.sort((a,b)=> ([...voicingPcs(b.bassPc,b.low,b.iv,b.upq)].every(p=>ks.has(p))?1:0)-([...voicingPcs(a.bassPc,a.low,a.iv,a.upq)].every(p=>ks.has(p))?1:0)); }
+  box.innerHTML='';
+  const upName=ROOT_SHARP[st.upRoot]+(st.upQual==='min'?'m':'');
+  const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=`上＝${upName} ／ ${items.length} 件${keyActive()?'（緑＝キー内）':''}`; box.appendChild(cnt);
+  items.forEach(x=>{
+    const bass=noteFromName(keyDegName(x.bassPc));
+    const up=buildTriad(bass, x.low==='dim'?'maj':x.upq, x.iv);
+    const upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
+    const lowName=bass.name+(x.low==='maj'?'':x.low==='min'?'m':'dim');
+    const ks=keyActive()?keySet():null; const ik = ks ? [...voicingPcs(x.bassPc,x.low,x.iv,x.upq)].every(p=>ks.has(p)) : null;
+    const degs=(function(){ const seen=new Set(),u=[]; [...buildTriad(bass,(x.low==='dim'?'dim':x.low),null),...up].forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name);u.push(n);} }); u.sort((a,b)=>((a.pc-bass.pc+12)%12)-((b.pc-bass.pc+12)%12)); return u.map(n=>degree(bass,n)).join(' '); })();
+    const c=document.createElement('div'); c.className='combo'+(ik===true?' inkey':ik===false?' outkey':''); c.dataset.low=x.low; c.dataset.iv=x.iv; c.dataset.upq=x.upq; c.dataset.root=bass.name;
+    c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
+      `<span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:bass.name+x.e.sym}</span>`+
+      `<span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${degs}</span>`;
+    c.addEventListener('click',()=>{ loadVoicing(bass.name,x.low,x.iv,x.upq); });
+    box.appendChild(c);
+  });
+  markActive();
+}
+// spell a bass pc: prefer the active key's spelling, else a sensible default
+function keyDegName(pc){ if(keyActive()){ const d=keyDegrees(tonicSpelling(st.keyPc,st.keyScale),st.keyScale).find(x=>x.pc===pc); if(d) return d.name; } return MIN_PC[pc]; }
 
 /* ---------- sub-bass linkage (same-origin localStorage) ---------- */
 // The sub-bass tool writes localStorage "subbass-key" = "<pc>|<scaleIdx>" on every
@@ -741,7 +806,7 @@ window.addEventListener('storage', e=>{ if(e.key==='subbass-key') applySubbass(r
 /* ---------- URL ---------- */
 function saveURL(){ const p=new URLSearchParams();
   p.set('x',st.rootName); p.set('l',st.low); p.set('i',st.iv); p.set('q',st.upq);
-  if(st.bass==='single') p.set('b','1'); if(st.tab&&st.tab!=='key') p.set('t',st.tab);
+  if(st.bass==='single') p.set('b','1'); if(st.reg==='stack') p.set('g','stack'); if(st.tab&&st.tab!=='key') p.set('t',st.tab);
   if(keyActive()){ p.set('root',ROOT_SHARP[st.keyPc]); p.set('scale',st.keyScale); }
   history.replaceState(null,'','?'+p.toString());
 }
@@ -758,7 +823,8 @@ function loadURL(){ const p=new URLSearchParams(location.search);
   if(p.has('i')) st.iv=p.get('i');
   if(p.has('q')&&['maj','min'].includes(p.get('q'))) st.upq=p.get('q');
   if(p.get('b')==='1') st.bass='single';
-  if(p.has('t')&&['key','build','color','name','mode','list'].includes(p.get('t'))) st.tab=p.get('t');
+  if(p.get('g')==='stack') st.reg='stack';
+  if(p.has('t')&&['key','build','color','name','upper','mode','list'].includes(p.get('t'))) st.tab=p.get('t');
   else if(st.keyPc!=null) st.tab='key';
   // minimal-operation: landing with just a key (no explicit voicing) → auto-pick
   // the first in-key voicing on the tonic so the hero shows a usable color at once
