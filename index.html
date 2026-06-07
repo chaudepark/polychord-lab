@@ -253,6 +253,7 @@
     <button class="seg" data-v="color">色（度数）で</button>
     <button class="seg" data-v="name">コード名で</button>
     <button class="seg" data-v="upper">上で探す</button>
+    <button class="seg" data-v="modulate">転調</button>
     <button class="seg" data-v="mode">モードで</button>
     <button class="seg" data-v="list">一覧</button>
   </div>
@@ -311,6 +312,13 @@
       <button class="btn ghost" id="upFromCur" style="align-self:flex-end">今の上トライアドにする</button>
     </div>
     <div class="results" id="upperResults"></div>
+  </div>
+
+  <!-- modulate -->
+  <div class="tabpanel" data-tab="modulate" hidden>
+    <p class="hint">今の土台キーから別キーへ「色で」渡るための3つの見方。<b style="color:var(--text)">どこへ・どの強さで</b>転調するかはサブベースツールで決め、ここで<b style="color:var(--text)">その瞬間をどう響かせるか</b>を詰めます。まず行き先キーを選択：</p>
+    <div id="modTargets" class="key-chips" style="margin-bottom:1.1rem"></div>
+    <div id="modBody"></div>
   </div>
 
   <!-- mode -->
@@ -480,7 +488,7 @@ const MODES={
 };
 
 /* ---------- state ---------- */
-let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', bass:'triad', reg:'level', tab:'key', keyPc:null, keyScale:'', upRoot:null, upQual:'min'};
+let st={rootName:'C', low:'maj', iv:'M2', upq:'maj', bass:'triad', reg:'level', tab:'key', keyPc:null, keyScale:'', upRoot:null, upQual:'min', modTarget:null, modBass:null};
 const $=id=>document.getElementById(id);
 
 /* ---------- controls ---------- */
@@ -583,13 +591,24 @@ function drawKeyboard(root, lower, upper){
 }
 
 /* ---------- audio ---------- */
+// Matches the sub-bass tool's playChord(): triangle voices through a master
+// envelope + 2600Hz lowpass, peak 0.16, dur 1.4s. Per-voice level is 1 (lowest
+// voice 0.45, like the sub-bass tool's soft sub-root); dense voicings are gently
+// normalised (×4/N) so total loudness stays in the sub-bass tool's range.
 let AC=null;
-function play(){ const mids=window._chordMidi||[]; if(!mids.length) return;
+function play(){ const mids=[...new Set(window._chordMidi||[])]; if(!mids.length) return;
   AC=AC||new (window.AudioContext||window.webkitAudioContext)();
-  const t0=AC.currentTime, out=AC.createGain(); out.gain.value=0.0001; out.connect(AC.destination);
-  out.gain.setValueAtTime(0.0001,t0); out.gain.exponentialRampToValueAtTime(0.22,t0+0.02); out.gain.exponentialRampToValueAtTime(0.0001,t0+1.8);
-  [...new Set(mids)].forEach((m,i)=>{ const o=AC.createOscillator(); o.type='triangle'; o.frequency.value=440*Math.pow(2,(m-69)/12);
-    const g=AC.createGain(); g.gain.value=1/Math.max(4,mids.length); o.connect(g); g.connect(out); o.start(t0+i*0.012); o.stop(t0+1.85); });
+  if(AC.state==='suspended') AC.resume();
+  const t0=AC.currentTime, dur=1.4, peak=0.16;
+  const master=AC.createGain();
+  const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600;
+  master.connect(lp); lp.connect(AC.destination);
+  master.gain.setValueAtTime(0.0001,t0);
+  master.gain.exponentialRampToValueAtTime(peak,t0+0.02);
+  master.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  const lowest=Math.min(...mids), ng=Math.min(1, 4/mids.length);
+  mids.forEach(m=>{ const o=AC.createOscillator(); o.type='triangle'; o.frequency.value=440*Math.pow(2,(m-69)/12);
+    const g=AC.createGain(); g.gain.value=(m===lowest?0.45:1)*ng; o.connect(g); g.connect(master); o.start(t0); o.stop(t0+dur+0.05); });
 }
 $('play').addEventListener('click',play);
 
@@ -741,6 +760,7 @@ function refreshTab(){ const t=st.tab;
   if(t==='key') renderKeyView(); else if(t==='color') revColorResults(); else if(t==='name') renderName();
   else if(t==='mode') buildModeBody();
   else if(t==='upper'){ if(st.upRoot==null) syncUpperFromCurrent(); renderUpperFamily(); }
+  else if(t==='modulate') renderModulate();
   else if(t==='list'){ tblMode = (st.low==='dim'?'dim':st.low); buildTblTabs(); buildSysTable(); }
 }
 $('tabbar').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=> setTab(b.dataset.v)));
@@ -787,6 +807,139 @@ function renderUpperFamily(){
 // spell a bass pc: prefer the active key's spelling, else a sensible default
 function keyDegName(pc){ if(keyActive()){ const d=keyDegrees(tonicSpelling(st.keyPc,st.keyScale),st.keyScale).find(x=>x.pc===pc); if(d) return d.name; } return MIN_PC[pc]; }
 
+/* ---------- modulation tab ---------- */
+const FUNC_MAJ={0:'T',1:'S',2:'T',3:'S',4:'D',5:'T',6:'D'};
+const FUNC_MIN={0:'T',1:'S',2:'T',3:'S',4:'D',5:'S',6:'D'};
+function funcOf(scaleKey,deg){ return (MAJORISH.has(scaleKey)?FUNC_MAJ:FUNC_MIN)[deg]; }
+function romanQ(deg,qual){ const b=ROMAN[deg]||''; if(qual==='maj')return b; if(qual==='aug')return b+'+'; if(qual==='min')return b.toLowerCase(); if(qual==='dim')return b.toLowerCase()+'°'; return b; }
+function pcSetOf(tonicPc,scaleKey){ return new Set(SCALES[scaleKey].map(iv=>(tonicPc+iv)%12)); }
+function diatonicTriads(tonicPc,scaleKey){
+  const pcs=SCALES[scaleKey].map(iv=>(tonicPc+iv)%12), out=[];
+  for(let d=0;d<7;d++){ const r=pcs[d], th=pcs[(d+2)%7], fi=pcs[(d+4)%7];
+    const i3=((th-r)%12+12)%12, i5=((fi-r)%12+12)%12; let q='?';
+    if(i3===4&&i5===7)q='maj'; else if(i3===3&&i5===7)q='min'; else if(i3===3&&i5===6)q='dim'; else if(i3===4&&i5===8)q='aug';
+    out.push({deg:d, rootPc:r, qual:q}); }
+  return out;
+}
+function relatedKeys(homePc,homeScale){
+  return diatonicTriads(homePc,homeScale)
+    .filter(t=> t.deg!==0 && (t.qual==='maj'||t.qual==='min'))
+    .map(t=>({pc:t.rootPc, scale:t.qual==='maj'?'major':'minor', homeDeg:t.deg, homeQual:t.qual}));
+}
+// best pivot = common diatonic triad, preferring a pre-dominant landing in the target
+function pivotChord(homePc,homeScale,tgtPc,tgtScale){
+  const H=diatonicTriads(homePc,homeScale), T=diatonicTriads(tgtPc,tgtScale), common=[];
+  for(const h of H){ if(h.qual!=='maj'&&h.qual!=='min') continue;
+    const tt=T.find(x=>x.rootPc===h.rootPc&&x.qual===h.qual); if(tt) common.push({rootPc:h.rootPc,qual:h.qual,homeDeg:h.deg,targetDeg:tt.deg}); }
+  if(!common.length) return null;
+  const pref={3:0,1:1,5:2,2:3,0:4,6:8,4:9};
+  common.sort((a,b)=>(pref[a.targetDeg]??5)-(pref[b.targetDeg]??5));
+  return common[0];
+}
+function noteNameInKey(pc,tonicPc,scaleKey){ const d=keyDegrees(tonicSpelling(tonicPc,scaleKey),scaleKey).find(x=>x.pc===pc); return d?d.name:(MAJORISH.has(scaleKey)?MAJ_PC:MIN_PC)[pc]; }
+function lowSuffixOf(low){ return low==='maj'?'':low==='min'?'m':'dim'; }
+// a clickable voicing row (shared by the modulation sections)
+function comboEl(rootName,low,iv,upq,e,badgeHtml){
+  const root=noteFromName(rootName);
+  const up=buildTriad(root, low==='dim'?'maj':upq, iv), upQ=low==='dim'?'':(upq==='maj'?'':'m');
+  const lowName=root.name+lowSuffixOf(low);
+  const seen=new Set(),u=[]; [...buildTriad(root,(low==='dim'?'dim':low),null),...up].forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name);u.push(n);} });
+  u.sort((a,b)=>((a.pc-root.pc+12)%12)-((b.pc-root.pc+12)%12));
+  const degs=u.map(n=>degree(root,n)).join(' ');
+  const c=document.createElement('div'); c.className='combo'; c.dataset.low=low; c.dataset.iv=iv; c.dataset.upq=upq; c.dataset.root=root.name;
+  c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
+    `<span class="arr">→</span><span class="csym">${e.raw?e.sym:root.name+e.sym}</span>`+
+    (badgeHtml||'')+`<span class="cnote">${e.warn?'⚠ ':''}${e.mode} · ${degs}</span>`;
+  c.addEventListener('click',()=>loadVoicing(root.name,low,iv,upq));
+  return c;
+}
+function modSection(title,hint){ const d=document.createElement('div'); d.style.marginBottom='1.5rem';
+  d.innerHTML=`<div class="key-deg-h" style="font-size:.94rem;color:var(--text);margin-bottom:.2rem">${title}</div><p class="hint" style="margin:.1rem 0 .7rem">${hint}</p>`; return d; }
+// switch the foundation key (used by ③ to actually perform the reinterpretation)
+function gotoKey(pc,scale){ st.keyPc=pc; st.keyScale=scale; st.modTarget=null; st.modBass=null;
+  $('keyTonic').value=String(pc); $('keyScale').value=scale; relabelKeyTonic(); onKeyChange(); }
+
+function renderModulate(){
+  const tg=$('modTargets'), body=$('modBody');
+  if(!keyActive()){ tg.innerHTML=''; body.innerHTML='<div class="empty">上の「曲の土台 — キー」を設定すると、そこからの転調の渡り方が表示されます（サブベースツールからのリンクでも可）。</div>'; return; }
+  const homePc=st.keyPc, homeScale=st.keyScale;
+  let rel=relatedKeys(homePc,homeScale);
+  if(homeScale==='major') rel.push({pc:homePc,scale:'minor',homeDeg:0,homeQual:'parallel'});
+  else if(homeScale==='minor') rel.push({pc:homePc,scale:'major',homeDeg:0,homeQual:'parallel'});
+  if(!rel.length){ tg.innerHTML=''; body.innerHTML='<div class="empty">このキーから関係調を導けませんでした。</div>'; return; }
+  if(!st.modTarget || !rel.some(r=>r.pc===st.modTarget.pc&&r.scale===st.modTarget.scale)) st.modTarget={pc:rel[0].pc,scale:rel[0].scale};
+  // target-key chips
+  tg.innerHTML='';
+  rel.forEach(r=>{ const on=st.modTarget.pc===r.pc&&st.modTarget.scale===r.scale;
+    const lab=r.homeQual==='parallel'?'同主調':romanQ(r.homeDeg,r.homeQual);
+    const b=document.createElement('button'); b.className='seg'+(on?' on':'');
+    b.innerHTML=`${tonicSpelling(r.pc,r.scale)} ${SCALE_LABEL[r.scale]} <span style="opacity:.6;font-weight:400">${lab}</span>`;
+    b.addEventListener('click',()=>{ st.modTarget={pc:r.pc,scale:r.scale}; st.modBass=null; renderModulate(); saveURL(); }); tg.appendChild(b); });
+  const tgtPc=st.modTarget.pc, tgtScale=st.modTarget.scale;
+  const homeSet=pcSetOf(homePc,homeScale), tgtSet=pcSetOf(tgtPc,tgtScale);
+  const common=new Set([...homeSet].filter(p=>tgtSet.has(p)));
+  body.innerHTML='';
+  body.appendChild(modPivot(homePc,homeScale,tgtPc,tgtScale,common));
+  body.appendChild(modPedal(homePc,homeScale,tgtPc,tgtScale,homeSet,tgtSet,common));
+  body.appendChild(modReinterpret(homePc,homeScale));
+  markActive();
+}
+// ① pivot chord, realised as rich both-key voicings
+function modPivot(homePc,homeScale,tgtPc,tgtScale,common){
+  const sec=modSection('① 蝶番コード（ピボット）を色で','home／target 両方に在るコードを、両キーに収まる拡張ボイシングで鳴らす。渡る瞬間そのもの。クリックでヒーローへ。');
+  const piv=pivotChord(homePc,homeScale,tgtPc,tgtScale);
+  if(!piv){ const e=document.createElement('div'); e.className='empty'; e.textContent='この2キー間に共通の三和音がありません。直接転調かセカンダリードミナントで渡ります。'; sec.appendChild(e); return sec; }
+  const rootName=noteNameInKey(piv.rootPc,homePc,homeScale);
+  const pivName=rootName+lowSuffixOf(piv.qual);
+  const hf=funcOf(homeScale,piv.homeDeg), tf=funcOf(tgtScale,piv.targetDeg);
+  const head=document.createElement('div'); head.className='key-deg-h'; head.style.marginBottom='.5rem';
+  head.innerHTML=`<b>${pivName}</b> ＝ ${homeName(homePc,homeScale)}で <span style="color:var(--text)">${romanQ(piv.homeDeg,piv.qual)} (${hf})</span> ／ ${homeName(tgtPc,tgtScale)}で <span style="color:var(--text)">${romanQ(piv.targetDeg,piv.qual)} (${tf})</span>`;
+  sec.appendChild(head);
+  const hits=INDEX.filter(x=> x.low===piv.qual && [...voicingPcs(piv.rootPc,x.low,x.iv,x.upq)].every(p=>common.has(p)));
+  if(!hits.length){ const e=document.createElement('div'); e.className='empty'; e.textContent='両キーに収まる拡張ボイシングはこの体系内にありません（素の三和音で渡ります）。'; sec.appendChild(e); return sec; }
+  hits.sort((a,b)=>a.degs.length-b.degs.length);
+  const wrap=document.createElement('div'); wrap.className='results';
+  hits.forEach(x=> wrap.appendChild(comboEl(rootName,x.low,x.iv,x.upq,x.e))); sec.appendChild(wrap); return sec;
+}
+// ② common-bass pedal: hold a shared bass, let the upper triad slide into the target key
+function modPedal(homePc,homeScale,tgtPc,tgtScale,homeSet,tgtSet,common){
+  const sec=modSection('② 共通ベースで滑り込む（ペダル）','ベース＝橋渡し。両キー共通の音をベースに保ったまま、上の三和音だけ行き先キーへ。下のチップでベース音を選択。');
+  const commonArr=[...common].sort((a,b)=>a-b);
+  if(!commonArr.length){ const e=document.createElement('div'); e.className='empty'; e.textContent='共通音がありません。'; sec.appendChild(e); return sec; }
+  if(st.modBass==null || !common.has(st.modBass)) st.modBass=[homePc,tgtPc,(tgtPc+7)%12].find(p=>common.has(p)) ?? commonArr[0];
+  const chips=document.createElement('div'); chips.className='segs'; chips.style.marginBottom='.7rem';
+  commonArr.forEach(pc=>{ const b=document.createElement('button'); b.className='seg'+(pc===st.modBass?' on':''); b.textContent=noteNameInKey(pc,tgtPc,tgtScale);
+    b.addEventListener('click',()=>{ st.modBass=pc; renderModulate(); }); chips.appendChild(b); });
+  sec.appendChild(chips);
+  const bassName=noteNameInKey(st.modBass,tgtPc,tgtScale);
+  let hits=INDEX.filter(x=> [...voicingPcs(st.modBass,x.low,x.iv,x.upq)].every(p=>tgtSet.has(p)));
+  hits.sort((a,b)=>a.degs.length-b.degs.length);
+  if(!hits.length){ const e=document.createElement('div'); e.className='empty'; e.textContent=`${bassName} の上に ${homeName(tgtPc,tgtScale)} のボイシングはこの体系内にありません。`; sec.appendChild(e); return sec; }
+  const wrap=document.createElement('div'); wrap.className='results';
+  hits.forEach(x=>{ const dual=[...voicingPcs(st.modBass,x.low,x.iv,x.upq)].every(p=>homeSet.has(p));
+    const badge=dual?'<span class="keyfit in" style="font-size:.66rem">両キー</span>':'<span class="keyfit out" style="font-size:.66rem">→ 行き先</span>';
+    wrap.appendChild(comboEl(bassName,x.low,x.iv,x.upq,x.e,badge)); }); sec.appendChild(wrap); return sec;
+}
+// ③ the current voicing's other identities — keys where the same pitch-set is diatonic
+function modReinterpret(homePc,homeScale){
+  const sec=modSection('③ 今の響きの多重身分','いまヒーローに出ている響きと同じ実音セットが成り立つ別キー。曖昧さを使った不意の転調。クリックでそのキーへ移ります。');
+  const pcs=[...new Set((window._chordMidi||[]).map(m=>((m%12)+12)%12))];
+  if(!pcs.length){ const e=document.createElement('div'); e.className='empty'; e.textContent='ヒーローにボイシングがありません。'; sec.appendChild(e); return sec; }
+  const rootPc=curRoot().pc, fits=[];
+  for(const scale of ['major','minor']) for(let t=0;t<12;t++){ const ks=pcSetOf(t,scale);
+    if(pcs.every(p=>ks.has(p))){ const tri=diatonicTriads(t,scale).find(x=>x.rootPc===rootPc);
+      fits.push({pc:t,scale,isHome:(t===homePc&&scale===homeScale),deg:tri?tri.deg:99,
+        roman:tri?romanQ(tri.deg,tri.qual):'—', func:tri?funcOf(scale,tri.deg):''}); } }
+  fits.sort((a,b)=> (b.isHome?1:0)-(a.isHome?1:0) || a.deg-b.deg);
+  const wrap=document.createElement('div'); wrap.className='key-chips';
+  fits.forEach(f=>{ const b=document.createElement('button'); b.className='key-chip'+(f.isHome?' active':'');
+    b.innerHTML=`<span class="kc-slash">${homeName(f.pc,f.scale)}${f.isHome?' <span style="color:var(--muted);font-size:.7rem">今</span>':''}</span>`+
+      `<span class="kc-sym">${f.roman}${f.func?' ('+f.func+')':''}</span>`;
+    b.addEventListener('click',()=>{ if(!f.isHome) gotoKey(f.pc,f.scale); }); wrap.appendChild(b); });
+  sec.appendChild(wrap); return sec;
+}
+function homeName(pc,scaleKey){ return tonicSpelling(pc,scaleKey)+' '+SCALE_LABEL[scaleKey]; }
+
 /* ---------- sub-bass linkage (same-origin localStorage) ---------- */
 // The sub-bass tool writes localStorage "subbass-key" = "<pc>|<scaleIdx>" on every
 // key change. We read it on load and follow it live via storage events.
@@ -808,6 +961,7 @@ function saveURL(){ const p=new URLSearchParams();
   p.set('x',st.rootName); p.set('l',st.low); p.set('i',st.iv); p.set('q',st.upq);
   if(st.bass==='single') p.set('b','1'); if(st.reg==='stack') p.set('g','stack'); if(st.tab&&st.tab!=='key') p.set('t',st.tab);
   if(keyActive()){ p.set('root',ROOT_SHARP[st.keyPc]); p.set('scale',st.keyScale); }
+  if(st.tab==='modulate' && st.modTarget) p.set('mt', st.modTarget.pc+'.'+st.modTarget.scale);
   history.replaceState(null,'','?'+p.toString());
 }
 function loadURL(){ const p=new URLSearchParams(location.search);
@@ -824,7 +978,8 @@ function loadURL(){ const p=new URLSearchParams(location.search);
   if(p.has('q')&&['maj','min'].includes(p.get('q'))) st.upq=p.get('q');
   if(p.get('b')==='1') st.bass='single';
   if(p.get('g')==='stack') st.reg='stack';
-  if(p.has('t')&&['key','build','color','name','upper','mode','list'].includes(p.get('t'))) st.tab=p.get('t');
+  if(p.has('mt')){ const [mp,ms]=p.get('mt').split('.'); if(SCALES[ms]) st.modTarget={pc:+mp,scale:ms}; }
+  if(p.has('t')&&['key','build','color','name','upper','modulate','mode','list'].includes(p.get('t'))) st.tab=p.get('t');
   else if(st.keyPc!=null) st.tab='key';
   // minimal-operation: landing with just a key (no explicit voicing) → auto-pick
   // the first in-key voicing on the tonic so the hero shows a usable color at once
