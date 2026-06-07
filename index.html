@@ -6,6 +6,20 @@
 <title>Polychord Lab — ハイブリッド／ポリコード探索器</title>
 <meta name="description" content="スラッシュコード（下トライアド＋上トライアド）から拡張和音を導く体系表とインタラクティブ探索器。実際の構成音と度数解析を常時表示。作曲・オーケストレーション向け。">
 <meta name="theme-color" content="#0f1115">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Polychord Lab — ハイブリッド／ポリコード探索器">
+<meta property="og:description" content="スラッシュコードから拡張和音を導く体系表＋インタラクティブ探索器。実際の構成音と度数を常時表示。順引き／逆引き対応。">
+<meta property="og:url" content="https://chaudepark.github.io/polychord-lab/">
+<meta property="og:image" content="https://chaudepark.github.io/polychord-lab/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Polychord Lab">
+<meta name="twitter:description" content="スラッシュコードから拡張和音を導く体系表＋探索器（順引き／逆引き）。">
+<meta name="twitter:image" content="https://chaudepark.github.io/polychord-lab/og.png">
 <style>
   :root{
     --bg:#0f1115; --card:#181b22; --card2:#1d2129; --border:#262b36; --border2:#2c3240;
@@ -78,6 +92,17 @@
   .legend{font-size:.74rem; color:var(--muted); display:flex; gap:.9rem; flex-wrap:wrap; margin-left:auto}
   .legend i{display:inline-block; width:.7rem; height:.7rem; border-radius:3px; vertical-align:-1px; margin-right:.3rem}
 
+  /* ---- explorer top / direction ---- */
+  .ex-top{display:flex; flex-wrap:wrap; gap:1.2rem 1.8rem; align-items:flex-end; margin-bottom:1.5rem; padding-bottom:1.3rem; border-bottom:1px solid var(--border)}
+  .rev-sub{margin-bottom:1.3rem}
+  #revColorUI,#revNameUI{display:flex; flex-wrap:wrap; gap:1.3rem 1.8rem; align-items:flex-start}
+  #revColorUI[hidden],#revNameUI[hidden]{display:none}
+  .seg.chip.on{background:var(--accent); border-color:var(--accent); color:#0f1115}
+  .rev-results{margin-top:1.5rem; display:flex; flex-direction:column; gap:.5rem}
+  .rev-empty{color:var(--muted); font-size:.88rem; padding:.7rem 0}
+  .rev-count{font-size:.72rem; color:var(--muted); margin:.2rem 0 .2rem}
+  .combo .cnote{font-variant-numeric:tabular-nums}
+
   /* ---- keyboard ---- */
   .kbd{position:relative; height:120px; margin-top:1.4rem; user-select:none; overflow-x:auto; padding-bottom:4px}
   .kbd-inner{position:relative; height:116px; display:flex}
@@ -102,7 +127,6 @@
   table.sys .degs{color:var(--muted); font-size:.78rem; font-variant-numeric:tabular-nums}
   table.sys .md{color:var(--accent); font-size:.76rem; white-space:nowrap}
   table.sys .md.warn{color:var(--warn)}
-  .corr{display:inline-block; font-size:.6rem; font-weight:800; color:var(--up); border:1px solid var(--up); border-radius:4px; padding:0 .25rem; margin-left:.35rem; vertical-align:middle; cursor:help}
 
   /* ---- modes ---- */
   .mode-tabs{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem}
@@ -144,56 +168,101 @@
 <!-- ============ EXPLORER ============ -->
 <h2>探索器</h2>
 <div class="card">
-  <div class="ctrls">
+  <div class="ex-top">
     <div class="cgroup">
       <span class="clabel">ルート (X)</span>
       <div class="segs"><select id="root" class="seg"></select></div>
     </div>
     <div class="cgroup">
-      <span class="clabel">下コード</span>
-      <div class="segs" id="lowq">
-        <button class="seg" data-v="maj">maj</button>
-        <button class="seg" data-v="min">min</button>
-        <button class="seg dim" data-v="dim">dim</button>
-      </div>
-    </div>
-    <div class="cgroup">
-      <span class="clabel">上コードのルート（X からの音程）</span>
-      <div class="segs" id="upiv"></div>
-    </div>
-    <div class="cgroup">
-      <span class="clabel">上コード</span>
-      <div class="segs" id="upq">
-        <button class="seg" data-v="maj">maj</button>
-        <button class="seg" data-v="min">min</button>
+      <span class="clabel">方向</span>
+      <div class="segs" id="dir">
+        <button class="seg" data-v="fwd">順引き（積む→和音）</button>
+        <button class="seg" data-v="rev">逆引き（和音→積み方）</button>
       </div>
     </div>
   </div>
 
-  <div class="result">
-    <div class="slash" id="slash"></div>
-    <div class="rmeta">
-      <div class="sym" id="sym"></div>
-      <div class="modechip" id="mode"></div>
+  <!-- ---- forward ---- -->
+  <div id="fwdPanel">
+    <div class="ctrls">
+      <div class="cgroup">
+        <span class="clabel">下コード</span>
+        <div class="segs" id="lowq">
+          <button class="seg" data-v="maj">maj</button>
+          <button class="seg" data-v="min">min</button>
+          <button class="seg dim" data-v="dim">dim</button>
+        </div>
+      </div>
+      <div class="cgroup">
+        <span class="clabel">上コードのルート（X からの音程）</span>
+        <div class="segs" id="upiv"></div>
+      </div>
+      <div class="cgroup">
+        <span class="clabel">上コード</span>
+        <div class="segs" id="upq">
+          <button class="seg" data-v="maj">maj</button>
+          <button class="seg" data-v="min">min</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="slash" id="slash"></div>
+      <div class="rmeta">
+        <div class="sym" id="sym"></div>
+        <div class="modechip" id="mode"></div>
+      </div>
+    </div>
+
+    <div class="kbd"><div class="kbd-inner" id="kbd"></div></div>
+
+    <div class="analysis">
+      <div class="arow"><span class="k">構成音</span><div class="pills" id="notes"></div></div>
+      <div class="arow"><span class="k">度数</span><div class="pills" id="degs"></div></div>
+    </div>
+
+    <div class="caveat" id="caveat"></div>
+
+    <div class="actions">
+      <button class="btn" id="play">▶ 試聴</button>
+      <span class="legend">
+        <span><i style="background:var(--low)"></i>下トライアド</span>
+        <span><i style="background:var(--up)"></i>上トライアド</span>
+        <span><i style="background:var(--both)"></i>共有音</span>
+      </span>
     </div>
   </div>
 
-  <div class="kbd"><div class="kbd-inner" id="kbd"></div></div>
+  <!-- ---- reverse ---- -->
+  <div id="revPanel" hidden>
+    <div class="segs rev-sub" id="revMode">
+      <button class="seg" data-v="color">欲しい“色”（度数）から</button>
+      <button class="seg" data-v="name">コード名から</button>
+    </div>
 
-  <div class="analysis">
-    <div class="arow"><span class="k">構成音</span><div class="pills" id="notes"></div></div>
-    <div class="arow"><span class="k">度数</span><div class="pills" id="degs"></div></div>
-  </div>
+    <div id="revColorUI">
+      <div class="cgroup">
+        <span class="clabel">下コード</span>
+        <div class="segs" id="revLow">
+          <button class="seg" data-v="any">すべて</button>
+          <button class="seg" data-v="maj">maj</button>
+          <button class="seg" data-v="min">min</button>
+        </div>
+      </div>
+      <div class="cgroup" style="flex:1; min-width:260px">
+        <span class="clabel">含めたい度数（複数選択）</span>
+        <div class="segs" id="revDegs"></div>
+      </div>
+    </div>
 
-  <div class="caveat" id="caveat"></div>
+    <div id="revNameUI" hidden>
+      <div class="cgroup">
+        <span class="clabel">目的の和音（X = ルート）</span>
+        <div class="segs"><select id="revChord" class="seg"></select></div>
+      </div>
+    </div>
 
-  <div class="actions">
-    <button class="btn" id="play">▶ 試聴</button>
-    <span class="legend">
-      <span><i style="background:var(--low)"></i>下トライアド</span>
-      <span><i style="background:var(--up)"></i>上トライアド</span>
-      <span><i style="background:var(--both)"></i>共有音</span>
-    </span>
+    <div class="rev-results" id="revResults"></div>
   </div>
 </div>
 
@@ -207,7 +276,7 @@
       <tbody id="sysBody"></tbody>
     </table>
   </div>
-  <p style="font-size:.78rem;color:var(--muted);margin:.9rem 0 0">行をクリックすると探索器に読み込まれます。<span class="corr">修正</span> は原典メモから理論的に訂正した項目（カーソルを乗せると理由）。</p>
+  <p style="font-size:.78rem;color:var(--muted);margin:.9rem 0 0">行をクリックすると探索器に読み込まれます。⚠ はバイトーナルな衝突を含むボイシング。</p>
 </div>
 
 <!-- ============ MODES ============ -->
@@ -250,7 +319,7 @@
 </div>
 
 <footer>
-  <p><b>この資料について：</b> 原典は手書きのハイブリッド／ポリコード制作メモ。構成音はすべて X=ルートとして実音から機械計算し、コード表記と突き合わせて検証済み。明らかな誤り（存在しない拡張音の表記、#9↔♭9 の取り違え、♭3／♮3 の半音衝突を隠した表記、ドミナント表記の誤用など）は理論的に修正してあります。</p>
+  <p>構成音と度数はすべて X=ルートとして実音から計算しています。</p>
   <p><b>解釈の幅：</b> 同じ構成音でも文脈で複数の呼び名があり得ます。困ったら表記より <b>度数（実音）</b> を信頼してください。</p>
 </footer>
 </div>
@@ -300,47 +369,47 @@ function degree(root,note){
   }
 }
 
-/* ---------- corrected data (verified) ---------- */
-// key: low|iv|upq  ->  {sym, mode, warn?, fix?}
+/* ---------- data ---------- */
+// key: low|iv|upq  ->  {sym, mode, warn?, raw?, note?}
 const IVORDER=['M2','M3','P4','P5','M6','m7','M7'];
 const IVLABEL={M2:'長2度',M3:'長3度',P4:'完4度',P5:'完5度',M6:'長6度',m7:'短7度',M7:'長7度'};
 const DATA={
  // ----- lower = maj -----
  'maj|M2|maj':{sym:'maj13(#11)',mode:'Lydian'},
- 'maj|M2|min':{sym:'6/9(add11)',mode:'Ionian',fix:'原典「X13」は誤り：♭7が無く属13にならない。♮11はM3と半音衝突'},
- 'maj|M3|maj':{sym:'maj7(#5)',mode:'Augmented'},
- 'maj|M3|min':{sym:'maj7',mode:'Ionian',fix:'原典「maj7(add5)」のadd5は無意味。実体はただのmaj7'},
- 'maj|P4|maj':{sym:'6(add11)',mode:'Subdominant',fix:'原典「maj11」は7th/9th不在。実体は6(add11)、♮11×M3に注意'},
- 'maj|P4|min':{sym:'(add11,♭13)',mode:'borrowed iv',fix:'原典「X11(b13)」は♭7不在＝属和音でない。Fm/C系の借用色'},
- 'maj|P5|maj':{sym:'maj9',mode:'Ionian',fix:'原典「maj9(add13)」は13(A)が存在しない。実体はmaj9'},
+ 'maj|M2|min':{sym:'6/9(add11)',mode:'Ionian',note:'♮11はM3と半音でぶつかる（アヴォイド）。♭7は無いので属和音ではない'},
+ 'maj|M3|maj':{sym:'maj7(#5)',mode:'Augmented',note:'上△が#5を供給。下の♮5も残るので5/♭13が共存する'},
+ 'maj|M3|min':{sym:'maj7',mode:'Ionian'},
+ 'maj|P4|maj':{sym:'6(add11)',mode:'Subdominant',note:'IV△/I。♮11はM3と半音でぶつかる（アヴォイド）'},
+ 'maj|P4|min':{sym:'(add11,♭13)',mode:'borrowed iv',note:'Fm/C 系の借用色。♭13を持つが♭7は無い'},
+ 'maj|P5|maj':{sym:'maj9',mode:'Ionian'},
  'maj|P5|min':{sym:'9',mode:'Mixolydian'},
- 'maj|M6|maj':{sym:'13(♭9)',mode:'Altered dom',fix:'原典「maj13(#9)」は誤り：上=A△の第3音は♭9（=C#）であって #9 ではない'},
- 'maj|M6|min':{sym:'6',mode:'Ionian',fix:'原典「maj13」は7th/9th不在。実体はただのC6'},
- 'maj|m7|maj':{sym:'11',mode:'Mixolydian'},
+ 'maj|M6|maj':{sym:'13(♭9)',mode:'Altered dom',note:'上△の第3音が♭9。鋭いオルタード色'},
+ 'maj|M6|min':{sym:'6',mode:'Ionian'},
+ 'maj|m7|maj':{sym:'11',mode:'Mixolydian',note:'属11。M3×11の固有の擦れあり'},
  'maj|m7|min':{sym:'7(♭9,11)',mode:'HM/Altered'},
  'maj|M7|maj':{sym:'maj7(#9,#11)',mode:'Lydian'},
  'maj|M7|min':{sym:'maj9(#11)',mode:'Lydian'},
  // ----- lower = min -----
- 'min|M2|maj':{sym:'m6/9(#11)',mode:'Dorian/Lydian-m',fix:'原典「m9(#11,13)」は♭7不在。m9ではなくm6/9系'},
- 'min|M2|min':{sym:'m6/9(add11)',mode:'Dorian',fix:'原典「m11(add13)」は♭7不在。m11ではなくm6/9系'},
- 'min|M3|maj':{sym:'バイトーナル（♭3/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,fix:'♭3と♮3、5と#5が半音衝突。クリーンなコードではなくバイトーナルなクラスター（上△の色を狙うなら下は省略気味に）'},
- 'min|M3|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,fix:'原典「m(M7,add5)」：上のm△が♮3を持ち込み♭3と衝突。add5も無意味'},
+ 'min|M2|maj':{sym:'m6/9(#11)',mode:'Dorian/Lydian-m',note:'#11はリディアン色。♭7は無い（m6/9系）'},
+ 'min|M2|min':{sym:'m6/9(add11)',mode:'Dorian',note:'ドリアンの積み。♭7は無い（m6/9系）'},
+ 'min|M3|maj':{sym:'バイトーナル（♭3/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭3と♮3、5と#5が半音でぶつかるバイトーナルなクラスター。上△の色を狙うなら下は省略気味に'},
+ 'min|M3|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,note:'上のm△が♮3を持ち込み♭3と半音衝突するバイトーナル'},
  'min|P4|maj':{sym:'m6(add11)',mode:'Dorian'},
- 'min|P4|min':{sym:'m(add11,♭13)',mode:'Aeolian',fix:'原典「m11(b13)」は♭7不在。エオリアン色のadd系'},
+ 'min|P4|min':{sym:'m(add11,♭13)',mode:'Aeolian',note:'エオリアン色（♭13）。♭7は無い'},
  'min|P5|maj':{sym:'m9(maj7)',mode:'Melodic-m'},
  'min|P5|min':{sym:'m9',mode:'Dorian/Aeolian'},
- 'min|M6|maj':{sym:'バイトーナル（♭9/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,fix:'原典「m(add13,#9)」：実際は♭9＆♮3が混入し衝突。#9ではない'},
- 'min|M6|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,fix:'上のm△の♮3が♭3と半音衝突（♮13＝ドリアン色を狙うなら下の♭3を省く）'},
+ 'min|M6|maj':{sym:'バイトーナル（♭9/♮3 衝突）',raw:1,mode:'Bitonal',warn:1,note:'♭9と♮3が混入し♭3と衝突するバイトーナル'},
+ 'min|M6|min':{sym:'バイトーナル（♮3 混入）',raw:1,mode:'Bitonal',warn:1,note:'上のm△の♮3が♭3と半音衝突（♮13＝ドリアン色を狙うなら下の♭3を省く）'},
  'min|m7|maj':{sym:'m11',mode:'Dorian/Aeolian'},
  'min|m7|min':{sym:'m7(♭9,11)',mode:'Phrygian'},
- 'min|M7|maj':{sym:'m(maj7,#11)',mode:'Melodic-m',fix:'原典「m(M7,#9,#11)」の#9(D#)は♭3と同音で冗長。整理'},
+ 'min|M7|maj':{sym:'m(maj7,#11)',mode:'Melodic-m'},
  'min|M7|min':{sym:'m9(maj7,#11)',mode:'Melodic-m'},
 };
 // Locrian special: dim lower + b2 maj
-const LOCRIAN={sym:'dim(♭9,11,♭13)',mode:'Locrian',warn:1,fix:'原典「X7(b9,11,b13)」は誤り：maj3も♭7も無く属7にならない。ロクリアンのø/dim系クラスター'};
+const LOCRIAN={sym:'dim(♭9,11,♭13)',mode:'Locrian',warn:1,note:'maj3も♭7も無いので属7ではない。ロクリアン的な dim/ø 系クラスター'};
 
 /* ---------- state ---------- */
-let st={rootIdx:0, low:'maj', iv:'M2', upq:'maj'};
+let st={rootIdx:0, low:'maj', iv:'M2', upq:'maj', dir:'fwd'};
 
 /* ---------- build controls ---------- */
 const $=id=>document.getElementById(id);
@@ -360,7 +429,7 @@ function normalizeForDim(){
   else if(st.iv==='b2'){ st.iv='M2'; }
 }
 wireSegs('lowq','low'); wireSegs('upiv','iv'); wireSegs('upq','upq');
-rootSel.addEventListener('change',()=>{ st.rootIdx=+rootSel.value; render(); });
+rootSel.addEventListener('change',()=>{ st.rootIdx=+rootSel.value; render(); if(st.dir==='rev') refreshRev(); });
 
 /* ---------- render ---------- */
 function currentEntry(){
@@ -420,9 +489,9 @@ function render(){
 
   // caveat
   const cav=$('caveat');
-  if(entry&&(entry.fix||entry.warn)){
+  if(entry&&(entry.note||entry.warn)){
     cav.className='caveat'+(entry.warn?' warn':'');
-    cav.innerHTML=`<span class="ic">${entry.warn?'⚠️':'✏️'}</span><span>${entry.fix||'バイトーナルな衝突を含みます。'}</span>`;
+    cav.innerHTML=`<span class="ic">${entry.warn?'⚠️':'ℹ️'}</span><span>${entry.note||'バイトーナルな衝突を含みます。'}</span>`;
   } else { cav.className='caveat'; cav.innerHTML=`<span class="ic">✓</span><span>構成音と表記が一致するクリーンな解釈です。</span>`; }
 
   syncSysHighlight();
@@ -521,9 +590,9 @@ function addSysRow(tb,low,iv,upq,e,root,ivLabel,upqLabel){
   const tr=document.createElement('tr');
   tr.dataset.low=low; tr.dataset.iv=iv; tr.dataset.upq=upq;
   tr.innerHTML=`<td class="up">${ivLabel} · ${upqLabel}</td>
-    <td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span>${e.fix?`<span class="corr" title="${e.fix.replace(/"/g,'&quot;')}">修正</span>`:''}</td>
+    <td><span class="sym">${e.raw?e.sym:'X'+e.sym}</span></td>
     <td class="degs">${degs}</td>
-    <td class="md${e.warn?' warn':''}">${e.mode}</td>`;
+    <td class="md${e.warn?' warn':''}">${e.warn?'⚠ ':''}${e.mode}</td>`;
   tr.addEventListener('click',()=>{ st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); document.querySelector('.card').scrollIntoView({behavior:'smooth',block:'start'}); });
   tb.appendChild(tr);
 }
@@ -571,9 +640,91 @@ function buildModeBody(){
   });
 }
 
+/* ---------- reverse lookup ---------- */
+// Precompute the degree content of every voicing (root-independent, so use C).
+const REV_DEGS=['♭9','9','#9','11','#11','♭5','#5','♭13','13','♭7','maj7'];
+const INDEX=[];
+(function buildIndex(){
+  const C=rootNote(0);
+  const add=(low,iv,upq,e)=>{
+    const lower=buildTriad(C, low==='dim'?'dim':low, null);
+    const up=buildTriad(C, low==='dim'?'maj':upq, iv);
+    const seen=new Set(), uniq=[];
+    [...lower,...up].forEach(n=>{ if(!seen.has(n.name)){ seen.add(n.name); uniq.push(n); } });
+    uniq.sort((a,b)=>((a.pc-C.pc+12)%12)-((b.pc-C.pc+12)%12));
+    const degs=uniq.map(n=>degree(C,n));
+    INDEX.push({low,iv,upq,e,degs,degSet:new Set(degs)});
+  };
+  for(const k in DATA){ const [low,iv,upq]=k.split('|'); add(low,iv,upq,DATA[k]); }
+  add('dim','b2','maj',LOCRIAN);
+})();
+
+let revMode='color', revLow='any';
+const revSel=new Set();
+
+// build degree chips + chord-name select once
+(function buildRevControls(){
+  const dbox=$('revDegs');
+  REV_DEGS.forEach(d=>{
+    const b=document.createElement('button'); b.className='seg chip'; b.dataset.v=d; b.textContent=d;
+    b.addEventListener('click',()=>{ if(revSel.has(d)) revSel.delete(d); else revSel.add(d); b.classList.toggle('on'); revColorResults(); });
+    dbox.appendChild(b);
+  });
+  const sel=$('revChord'); const seen=new Set();
+  INDEX.forEach(x=>{ if(!x.e.raw && !seen.has(x.e.sym)){ seen.add(x.e.sym); const o=document.createElement('option'); o.value=x.e.sym; o.textContent='X'+x.e.sym; sel.appendChild(o); } });
+  sel.addEventListener('change',refreshRev);
+  $('revMode').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ revMode=b.dataset.v; refreshRev(); }));
+  $('revLow').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>{ revLow=b.dataset.v; revColorResults(); }));
+  $('dir').querySelectorAll('.seg').forEach(b=> b.addEventListener('click',()=>setDir(b.dataset.v)));
+})();
+
+function setDir(d){
+  st.dir=d;
+  $('fwdPanel').hidden = d!=='fwd';
+  $('revPanel').hidden = d!=='rev';
+  $('dir').querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===d));
+  if(d==='rev') refreshRev();
+  saveURL();
+}
+function refreshRev(){
+  $('revColorUI').hidden = revMode!=='color';
+  $('revNameUI').hidden = revMode!=='name';
+  $('revMode').querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===revMode));
+  $('revLow').querySelectorAll('.seg').forEach(b=> b.classList.toggle('on', b.dataset.v===revLow));
+  if(revMode==='color') revColorResults();
+  else renderRecipes(INDEX.filter(x=> !x.e.raw && x.e.sym===$('revChord').value));
+}
+function revColorResults(){
+  const want=[...revSel];
+  let res=INDEX.filter(x=>{
+    if(revLow!=='any' && x.low!==revLow) return false;
+    return want.every(d=> x.degSet.has(d));
+  });
+  res.sort((a,b)=> a.degs.length-b.degs.length);
+  renderRecipes(res);
+}
+function renderRecipes(list){
+  const box=$('revResults'); box.innerHTML='';
+  if(!list.length){ box.innerHTML='<div class="rev-empty">この体系（三和音2つ）で該当するボイシングはありません。</div>'; return; }
+  const root=rootNote(st.rootIdx);
+  const cnt=document.createElement('div'); cnt.className='rev-count'; cnt.textContent=`${list.length} 件`; box.appendChild(cnt);
+  list.forEach(x=>{
+    const up=buildTriad(root, x.low==='dim'?'maj':x.upq, x.iv);
+    const upQ=x.low==='dim'?'':(x.upq==='maj'?'':'m');
+    const lowName=root.name+(x.low==='maj'?'':x.low==='min'?'m':'dim');
+    const c=document.createElement('div'); c.className='combo';
+    c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>
+      <span class="arr">→</span><span class="csym">${x.e.raw?x.e.sym:root.name+x.e.sym}</span>
+      <span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${x.degs.join(' ')}</span>`;
+    c.addEventListener('click',()=>{ st.low=x.low; st.iv=x.iv; st.upq=x.upq; normalizeForDim(); setDir('fwd'); render(); });
+    box.appendChild(c);
+  });
+}
+
 /* ---------- URL persist ---------- */
 function saveURL(){
   const p=new URLSearchParams({r:st.rootIdx,l:st.low,i:st.iv,q:st.upq});
+  if(st.dir==='rev') p.set('d','rev');
   history.replaceState(null,'','?'+p.toString());
 }
 function loadURL(){
@@ -582,6 +733,7 @@ function loadURL(){
   if(p.has('l')&&['maj','min','dim'].includes(p.get('l'))) st.low=p.get('l');
   if(p.has('i')) st.iv=p.get('i');
   if(p.has('q')&&['maj','min'].includes(p.get('q'))) st.upq=p.get('q');
+  if(p.get('d')==='rev') st.dir='rev';
   normalizeForDim();
 }
 
@@ -590,6 +742,7 @@ loadURL();
 buildTblTabs(); buildSysTable();
 buildModeTabs(); buildModeBody();
 render();
+setDir(st.dir);
 </script>
 </body>
 </html>

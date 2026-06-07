@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0f1115"/>
+  <!-- two stacked triads = polychord -->
+  <polygon points="32,28 51,55 13,55" fill="#6ea8fe"/>
+  <polygon points="32,9 49,36 15,36" fill="#e0a23a"/>
+  <line x1="44" y1="12" x2="20" y2="52" stroke="#0f1115" stroke-width="4" stroke-linecap="round"/>
+</svg>

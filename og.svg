@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Helvetica Neue, Arial, sans-serif">
+  <defs>
+    <radialGradient id="bg" cx="72%" cy="-8%" r="115%">
+      <stop offset="0%" stop-color="#1f2330"/>
+      <stop offset="55%" stop-color="#0f1115"/>
+      <stop offset="100%" stop-color="#0b0d11"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- logo: two stacked triads -->
+  <g transform="translate(96,108)">
+    <polygon points="60,52 112,128 8,128" fill="#6ea8fe"/>
+    <polygon points="60,0 106,76 14,76" fill="#e0a23a"/>
+    <line x1="92" y1="8" x2="28" y2="120" stroke="#0f1115" stroke-width="9" stroke-linecap="round"/>
+  </g>
+
+  <text x="232" y="170" fill="#e6e9ef" font-size="78" font-weight="800" letter-spacing="0.5">Polychord Lab</text>
+  <text x="234" y="222" fill="#8b93a3" font-size="34" font-weight="600">ハイブリッド／ポリコード探索器</text>
+
+  <!-- sample voicing -->
+  <g transform="translate(96,330)">
+    <text x="0" y="0" font-size="72" font-weight="800">
+      <tspan fill="#e0a23a">D</tspan><tspan fill="#5c6373"> / </tspan><tspan fill="#6ea8fe">C</tspan><tspan fill="#5c6373">  →  </tspan><tspan fill="#e6e9ef">Cmaj13(#11)</tspan>
+    </text>
+    <text x="2" y="64" fill="#8b93a3" font-size="32" font-weight="600">構成音 C D E F# G A　·　度数 R 9 3 #11 5 13</text>
+  </g>
+
+  <!-- footer chips -->
+  <g transform="translate(96,500)" font-size="30" font-weight="700">
+    <rect x="0" y="-34" width="250" height="50" rx="25" fill="none" stroke="#2c3240"/>
+    <text x="28" y="0" fill="#6ea8fe">順引き ⇄ 逆引き</text>
+    <rect x="278" y="-34" width="360" height="50" rx="25" fill="none" stroke="#2c3240"/>
+    <text x="306" y="0" fill="#8b93a3">実音と度数を常時表示</text>
+  </g>
+</svg>
