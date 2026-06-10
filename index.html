@@ -87,6 +87,11 @@
   .wk.low .lbl,.wk.up .lbl,.wk.both .lbl{color:#0f1115}
   .bk .lbl{position:absolute; bottom:4px; left:0; right:0; text-align:center; font-size:.52rem; font-weight:700; color:#c9cdd6}
   .bk.low .lbl,.bk.up .lbl,.bk.both .lbl{color:#0f1115}
+  .wk.held,.bk.held{background:#2be37c; box-shadow:inset 0 0 0 2px #bdf7d6; opacity:1}
+  .wk.held .lbl,.bk.held .lbl{color:#0f1115}
+  .midichip{font-size:.85rem; font-weight:800; color:#2be37c; background:rgba(43,227,124,.12); border-radius:6px; padding:.12rem .5rem; font-variant-numeric:tabular-nums}
+  #midiSel{height:2.1rem; border-color:#2be37c; color:#2be37c}
+  #midiSel.off{border-color:var(--border2); color:var(--muted)}
 
   .analysis{margin-top:1rem; display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1.4rem; align-items:start}
   @media(max-width:560px){ .analysis{grid-template-columns:1fr} }
@@ -219,6 +224,7 @@
     <div class="rmeta">
       <div class="sym" id="sym"></div>
       <div class="chips"><span class="modechip" id="mode"></span><span class="keyfit" id="keyfit" hidden></span></div>
+      <div class="chips" id="midiLine" hidden><span class="midichip">🎹 <b id="midiChordName">—</b></span><span class="keyfit in" id="midiMatch" data-i18n="midi_match" hidden>✓ 一致</span></div>
     </div>
   </div>
 
@@ -251,6 +257,7 @@
       </div>
     </div>
     <button class="btn" id="play" data-i18n="play">▶ 試聴</button>
+    <select id="midiSel" class="seg" hidden></select>
     <span class="legend">
       <span data-i18n-html="lg_low"><i style="background:var(--low)"></i>下</span>
       <span data-i18n-html="lg_up"><i style="background:var(--up)"></i>上</span>
@@ -401,6 +408,8 @@ const I18N={
     hb_root:'ルート (X)', hb_bass:'下の鳴らし方', bass_triad:'三和音', bass_single:'単音ベース',
     hb_reg:'上の音域', reg_level:'揃える', reg_stack:'積む',
     hb_dbl:'重複音', dbl_on:'あり', dbl_off:'なし', play:'▶ 試聴',
+    midi_none:'🎹 —（未接続）', midi_denied:'🎹 MIDIアクセス拒否',
+    midi_nodevice:'🎹 MIDI機器なし', midi_match:'✓ 一致',
     lg_low:'<i style="background:var(--low)"></i>下', lg_up:'<i style="background:var(--up)"></i>上', lg_both:'<i style="background:var(--both)"></i>共有',
     tab_key:'キーで探す', tab_build:'組み立てる', tab_color:'色（度数）で', tab_name:'コード名で', tab_upper:'上で探す', tab_modulate:'転調', tab_mode:'モードで', tab_list:'一覧',
     hint_key:'土台のキーに収まる拡張ボイシングを度数別に表示します。チップをクリックで上の結果へ。',
@@ -449,6 +458,8 @@ const I18N={
     hb_root:'Root (X)', hb_bass:'Lower voicing', bass_triad:'Triad', bass_single:'Bass note',
     hb_reg:'Upper register', reg_level:'Level', reg_stack:'Stack',
     hb_dbl:'Doublings', dbl_on:'On', dbl_off:'Off', play:'▶ Audition',
+    midi_none:'🎹 — (not connected)', midi_denied:'🎹 MIDI access denied',
+    midi_nodevice:'🎹 No MIDI device', midi_match:'✓ match',
     lg_low:'<i style="background:var(--low)"></i>Lower', lg_up:'<i style="background:var(--up)"></i>Upper', lg_both:'<i style="background:var(--both)"></i>Shared',
     tab_key:'By key', tab_build:'Build', tab_color:'By colour', tab_name:'By name', tab_upper:'By upper', tab_modulate:'Modulate', tab_mode:'By mode', tab_list:'Table',
     hint_key:'Voicings that fit the foundation key, grouped by scale degree. Click a chip to load it above.',
@@ -668,6 +679,7 @@ function render(){
     const d=document.createElement('span'); d.className='pill '+cls; d.textContent=degree(root,n); degBox.appendChild(d); });
 
   drawKeyboard(root, lower, upTriad);
+  renderMidiChord();
 
   markActive();
   saveURL();
@@ -704,18 +716,19 @@ function drawKeyboard(root, lower, upper){
   const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
   const whites=[]; for(let m=START;m<=END;m++){ if(!isBlack(m%12)) whites.push(m); }
   whites.forEach((m,wi)=>{
-    const pc=m%12; const w=document.createElement('div'); w.className='wk';
+    const pc=m%12; const w=document.createElement('div'); w.className='wk'; w.dataset.m=m;
     const cls = lowSet.has(m)&&upSet.has(m)?'both':lowSet.has(m)?'low':upSet.has(m)?'up':'';
     if(cls) w.classList.add(cls);
     if(mutedSet.has(m)) w.classList.add('muted');
     const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent= cls?NAMES[pc]:(pc===0?'C'+(Math.floor(m/12)-1):''); w.appendChild(lbl); box.appendChild(w);
     const nb=m+1;
-    if(nb<=END && isBlack(nb%12)){ const b=document.createElement('div'); b.className='bk';
+    if(nb<=END && isBlack(nb%12)){ const b=document.createElement('div'); b.className='bk'; b.dataset.m=nb;
       const bcls=lowSet.has(nb)&&upSet.has(nb)?'both':lowSet.has(nb)?'low':upSet.has(nb)?'up':'';
       if(bcls){ b.classList.add(bcls); if(mutedSet.has(nb)) b.classList.add('muted'); const bl=document.createElement('span'); bl.className='lbl'; bl.textContent=NAMES[nb%12]; b.appendChild(bl); }
       b.style.left=(wi*whiteW + whiteW - 10.5)+'px'; box.appendChild(b);
     }
   });
+  paintHeld();
 }
 
 /* ---------- audio ---------- */
@@ -739,6 +752,127 @@ function play(){ const mids=[...new Set(window._chordMidi||[])]; if(!mids.length
     const g=AC.createGain(); g.gain.value=(m===lowest?0.45:1)*ng; o.connect(g); g.connect(master); o.start(t0); o.stop(t0+dur+0.05); });
 }
 $('play').addEventListener('click',play);
+
+/* ---------- MIDI input (Web MIDI) ---------- */
+// Held keys are painted green on the hero keyboard, the played chord is named
+// next to the current voicing's symbol, and "✓" appears when the played
+// pitch-class set equals the current voicing's (octaves/doublings don't matter).
+// Devices are detected automatically on load; the dropdown defaults to "not
+// connected" and only the device the user picked (remembered) is listened to.
+let midiAccess=null, midiState='idle', midiInputs=[], midiCurId=null;   // idle|unsupported|denied|nodevice|on
+const heldNotes=new Set();
+function onMIDIMessage(e){
+  const [s,d1,d2]=e.data, cmd=s&0xf0;
+  if(cmd===0x90 && d2>0) heldNotes.add(d1);
+  else if(cmd===0x80 || (cmd===0x90 && d2===0)) heldNotes.delete(d1);
+  else if(cmd===0xb0 && (d1===123||d1===120)) heldNotes.clear();  // all-notes/sound-off
+  else return;
+  paintHeld(); renderMidiChord();
+}
+// only the selected input is listened to; switching clears held notes.
+// The preference is persisted only on an explicit user choice (persist=true),
+// never by automatic rebinds, so hot-plugging can't stomp the saved device.
+function selectMidiInput(id, persist){
+  midiCurId=id||null;
+  midiInputs.forEach(inp=>{ inp.onmidimessage = inp.id===midiCurId ? onMIDIMessage : null; });
+  heldNotes.clear(); paintHeld();
+  if(persist){ try{ localStorage.setItem('polychord-midi-dev', midiCurId||''); }catch(err){} }
+}
+function bindMidiInputs(){
+  if(!midiAccess) return;
+  midiInputs=[];
+  midiAccess.inputs.forEach(inp=> midiInputs.push(inp));
+  midiState=midiInputs.length?'on':'nodevice';
+  // auto-connect only when the remembered device is actually present;
+  // otherwise stay (or fall back to) unconnected — never grab another device
+  let pref=null; try{ pref=localStorage.getItem('polychord-midi-dev'); }catch(err){}
+  const cur = midiInputs.find(i=>i.id===midiCurId) || (pref ? midiInputs.find(i=>i.id===pref) : null);
+  selectMidiInput(cur?cur.id:null, false);
+  updateMidiUI(); renderMidiChord();
+}
+async function midiConnect(){
+  if(!navigator.requestMIDIAccess){ midiState='unsupported'; updateMidiUI(); return; }
+  try{ midiAccess=await navigator.requestMIDIAccess(); }
+  catch(err){ midiState='denied'; updateMidiUI(); return; }
+  midiAccess.onstatechange=bindMidiInputs;
+  bindMidiInputs();
+}
+function updateMidiUI(){
+  const sel=$('midiSel');
+  if(midiState==='idle'||midiState==='unsupported'){ sel.hidden=true; return; }
+  sel.hidden=false; sel.innerHTML='';
+  if(midiState==='denied'||midiState==='nodevice'){
+    const o=document.createElement('option'); o.value='';
+    o.textContent=t(midiState==='denied'?'midi_denied':'midi_nodevice');
+    sel.appendChild(o); sel.disabled=true; sel.classList.add('off'); return;
+  }
+  sel.disabled=false;
+  const none=document.createElement('option'); none.value=''; none.textContent=t('midi_none'); sel.appendChild(none);
+  midiInputs.forEach(inp=>{ const o=document.createElement('option'); o.value=inp.id; o.textContent='🎹 '+(inp.name||'MIDI'); sel.appendChild(o); });
+  sel.value=midiCurId||'';
+  sel.classList.toggle('off', !midiCurId);
+}
+function paintHeld(){
+  document.querySelectorAll('#kbd .wk,#kbd .bk').forEach(el=> el.classList.toggle('held', heldNotes.has(+el.dataset.m)));
+}
+function renderMidiChord(){
+  const line=$('midiLine');
+  if(!midiCurId){ line.hidden=true; return; }
+  line.hidden=false;
+  const mids=[...heldNotes].sort((a,b)=>a-b);
+  $('midiChordName').textContent = mids.length ? chordNameOf(mids) : '—';
+  const cur=new Set((window._chordMidi||[]).map(m=>m%12)), held=new Set(mids.map(m=>m%12));
+  $('midiMatch').hidden = !(held.size>0 && held.size===cur.size && [...cur].every(p=>held.has(p)));
+}
+$('midiSel').addEventListener('change',()=>{ selectMidiInput($('midiSel').value, true); updateMidiUI(); renderMidiChord(); });
+
+/* ---------- name the played notes ---------- */
+const CHORD_FORMS=[
+  ['',[0,4,7]],['m',[0,3,7]],['dim',[0,3,6]],['aug',[0,4,8]],
+  ['sus2',[0,2,7]],['sus4',[0,5,7]],
+  ['7',[0,4,7,10]],['maj7',[0,4,7,11]],['m7',[0,3,7,10]],['m(maj7)',[0,3,7,11]],
+  ['m7♭5',[0,3,6,10]],['dim7',[0,3,6,9]],['6',[0,4,7,9]],['m6',[0,3,7,9]],
+  ['7sus4',[0,5,7,10]],['add9',[0,2,4,7]],['m(add9)',[0,2,3,7]],
+  ['7(♭5)',[0,4,6,10]],['7(#5)',[0,4,8,10]],['maj7(#5)',[0,4,8,11]],
+  ['7(♭9)',[0,1,4,7,10]],['7(#9)',[0,3,4,7,10]],
+  ['9',[0,2,4,7,10]],['maj9',[0,2,4,7,11]],['m9',[0,2,3,7,10]],['m9(maj7)',[0,2,3,7,11]],
+  ['6/9',[0,2,4,7,9]],['m6/9',[0,2,3,7,9]],
+  ['11',[0,2,4,5,7,10]],['m11',[0,2,3,5,7,10]],
+  ['13',[0,2,4,7,9,10]],['maj13',[0,2,4,7,9,11]],
+];
+const FORM_MAP=new Map(CHORD_FORMS.map(([s,iv])=>[iv.join(','),s]));
+function relKey(pcs,r){ return [...pcs].map(p=>(p-r+12)%12).sort((a,b)=>a-b).join(','); }
+// exact pc-set match against the common-chord dictionary, preferring root = bass
+function matchForms(pcs,bassPc){
+  let best=null;
+  for(const r of pcs){ const suf=FORM_MAP.get(relKey(pcs,r)); if(suf==null) continue;
+    const inv=r===bassPc?0:1; if(!best||inv<best.inv) best={r,suf,inv}; }
+  return best;
+}
+// exact match against this tool's own polychord voicings (consistent symbols)
+function matchIndex(pcs,bassPc){
+  let best=null;
+  for(const r of pcs) for(const x of INDEX){ if(x.e.raw) continue;
+    const vs=voicingPcs(r,x.low,x.iv,x.upq);
+    if(vs.size!==pcs.size || ![...vs].every(p=>pcs.has(p))) continue;
+    const inv=r===bassPc?0:1;
+    if(!best||inv<best.inv) best={r,suf:x.e.sym,inv}; }
+  return best;
+}
+function chordNameOf(mids){
+  const bassPc=mids[0]%12, pcs=new Set(mids.map(m=>m%12));
+  if(pcs.size===1) return keyDegName(bassPc);
+  if(pcs.size===2){ const o=[...pcs].find(p=>p!==bassPc); return keyDegName(bassPc)+'·'+keyDegName(o); }
+  const f=matchForms(pcs,bassPc), x=matchIndex(pcs,bassPc);
+  let hit=f; if(x && (!f || x.inv<f.inv)) hit=x;
+  if(hit) return keyDegName(hit.r)+hit.suf+(hit.inv?'/'+keyDegName(bassPc):'');
+  // no exact name: try the notes above the bass as a chord → slash notation
+  const upper=new Set([...pcs].filter(p=>p!==bassPc));
+  const upBass=mids.find(m=>m%12!==bassPc)%12;
+  const up=upper.size>=3 ? matchForms(upper,upBass) : null;
+  if(up) return keyDegName(up.r)+up.suf+'/'+keyDegName(bassPc);
+  return [...pcs].sort((a,b)=>((a-bassPc+12)%12)-((b-bassPc+12)%12)).map(keyDegName).join('·');
+}
 
 /* ---------- shared: load a voicing into the hero ---------- */
 function loadVoicing(rootName, low, iv, upq){ st.rootName=rootName; st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); }
@@ -1094,6 +1228,7 @@ function applyI18n(){
   document.title=t('title');
   document.querySelectorAll('[data-i18n]').forEach(el=> el.textContent=t(el.dataset.i18n));
   document.querySelectorAll('[data-i18n-html]').forEach(el=> el.innerHTML=t(el.dataset.i18nHtml));
+  updateMidiUI();
 }
 function setLang(lang){ if(lang!=='en'&&lang!=='ja') return; LANG=lang;
   applyI18n(); applyIvTitles();
@@ -1151,6 +1286,7 @@ document.querySelectorAll('#langToggle button').forEach(b=> b.classList.toggle('
 relabelKeyTonic(); setLinked(subbassLinked); renderKeyView();
 render();
 setTab(st.tab);
+midiConnect();   // detect devices up front; listening starts only when one is picked (or remembered)
 </script>
 </body>
 </html>
