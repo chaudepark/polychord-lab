@@ -90,8 +90,24 @@
   .wk.held,.bk.held{background:#2be37c; box-shadow:inset 0 0 0 2px #bdf7d6; opacity:1}
   .wk.held .lbl,.bk.held .lbl{color:#0f1115}
   .midichip{font-size:.85rem; font-weight:800; color:#2be37c; background:rgba(43,227,124,.12); border-radius:6px; padding:.12rem .5rem; font-variant-numeric:tabular-nums}
-  #midiSel{height:2.1rem; border-color:#2be37c; color:#2be37c}
-  #midiSel.off{border-color:var(--border2); color:var(--muted)}
+  #midiSel,#midiOutSel{height:2.1rem; border-color:#2be37c; color:#2be37c}
+  #midiSel.off,#midiOutSel.off{border-color:var(--border2); color:var(--muted)}
+  #midiGrab{font-size:.72rem}
+  .vl{font-size:.66rem; font-weight:700; color:var(--accent); background:rgba(110,168,254,.12); border-radius:5px; padding:.1rem .4rem; white-space:nowrap}
+
+  /* ---- sketch loop bar (shared with the sub-bass tool) ---- */
+  .sketch{position:fixed; left:0; right:0; bottom:0; z-index:60; background:var(--card); border-top:1px solid var(--border); display:flex; align-items:center; gap:.6rem; padding:.55rem .9rem; flex-wrap:wrap}
+  .sketch .sk-title{font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); flex:none}
+  .sk-slots{display:flex; gap:.4rem; flex-wrap:wrap; flex:1; min-width:0}
+  .sk-slot{display:inline-flex; align-items:center; gap:.3rem; background:var(--card2); border:1px solid var(--border2); border-radius:8px; padding:.2rem .3rem .2rem .55rem; font-size:.82rem; font-weight:700; cursor:pointer; font-variant-numeric:tabular-nums}
+  .sk-slot:hover{border-color:var(--accent)}
+  .sk-slot.playing{border-color:var(--accent); background:rgba(110,168,254,.15)}
+  .sk-slot .sk-x{background:none; border:none; color:var(--muted); font:inherit; font-size:.8em; cursor:pointer; padding:0 .15rem}
+  .sk-slot .sk-x:hover{color:var(--warn)}
+  .sketch input[type=number]{width:4.2rem; background:var(--card2); color:var(--text); border:1px solid var(--border2); border-radius:8px; padding:.3rem .4rem; font:inherit; font-size:.82rem}
+  .sketch .sk-btn{background:var(--card2); color:var(--text); border:1px solid var(--border2); border-radius:8px; padding:.3rem .6rem; font:inherit; font-size:.82rem; font-weight:700; cursor:pointer}
+  .sketch .sk-btn:hover{border-color:var(--accent)}
+  body.has-sketch{padding-bottom:7.5rem}
 
   .analysis{margin-top:1rem; display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1.4rem; align-items:start}
   @media(max-width:560px){ .analysis{grid-template-columns:1fr} }
@@ -224,7 +240,7 @@
     <div class="rmeta">
       <div class="sym" id="sym"></div>
       <div class="chips"><span class="modechip" id="mode"></span><span class="keyfit" id="keyfit" hidden></span></div>
-      <div class="chips" id="midiLine" hidden><span class="midichip">🎹 <b id="midiChordName">—</b></span><span class="keyfit in" id="midiMatch" data-i18n="midi_match" hidden>✓ 一致</span></div>
+      <div class="chips" id="midiLine" hidden><span class="midichip">🎹 <b id="midiChordName">—</b></span><span class="keyfit in" id="midiMatch" data-i18n="midi_match" hidden>✓ 一致</span><button class="seg" id="midiGrab" data-i18n="midi_grab" hidden>⤵ この響きを取り込む</button></div>
     </div>
   </div>
 
@@ -257,7 +273,10 @@
       </div>
     </div>
     <button class="btn" id="play" data-i18n="play">▶ 試聴</button>
+    <button class="btn ghost" id="skAdd" data-i18n="sk_add">＋ スケッチ</button>
+    <button class="btn ghost" id="midiExp" draggable="true">⬇ MIDI</button>
     <select id="midiSel" class="seg" hidden></select>
+    <select id="midiOutSel" class="seg" hidden></select>
     <span class="legend">
       <span data-i18n-html="lg_low"><i style="background:var(--low)"></i>下</span>
       <span data-i18n-html="lg_up"><i style="background:var(--up)"></i>上</span>
@@ -394,6 +413,15 @@
 </footer>
 </div>
 
+<div class="sketch" id="sketchBar" hidden>
+  <span class="sk-title" data-i18n="sk_title">スケッチループ</span>
+  <div class="sk-slots" id="skSlots"></div>
+  <input type="number" id="skBpm" min="40" max="220" step="1" aria-label="BPM">
+  <button class="sk-btn" id="skPlay">▶</button>
+  <button class="sk-btn" id="skMidi" draggable="true">⬇ MIDI</button>
+  <button class="sk-btn" id="skClear">✕</button>
+</div>
+
 <script>
 "use strict";
 /* ---------- i18n (language synced with the sub-bass tool via localStorage "subbass-lang") ---------- */
@@ -410,6 +438,9 @@ const I18N={
     hb_dbl:'重複音', dbl_on:'あり', dbl_off:'なし', play:'▶ 試聴',
     midi_none:'🎹 —（未接続）', midi_denied:'🎹 MIDIアクセス拒否',
     midi_nodevice:'🎹 MIDI機器なし', midi_match:'✓ 一致',
+    midi_internal:'🔈 内蔵音源', midi_grab:'⤵ この響きを取り込む',
+    sk_add:'＋ スケッチ', sk_title:'スケッチループ',
+    vl:(s,n)=>`共有${s}・新${n}`,
     lg_low:'<i style="background:var(--low)"></i>下', lg_up:'<i style="background:var(--up)"></i>上', lg_both:'<i style="background:var(--both)"></i>共有',
     tab_key:'キーで探す', tab_build:'組み立てる', tab_color:'色（度数）で', tab_name:'コード名で', tab_upper:'上で探す', tab_modulate:'転調', tab_mode:'モードで', tab_list:'一覧',
     hint_key:'土台のキーに収まる拡張ボイシングを度数別に表示します。チップをクリックで上の結果へ。',
@@ -460,6 +491,9 @@ const I18N={
     hb_dbl:'Doublings', dbl_on:'On', dbl_off:'Off', play:'▶ Audition',
     midi_none:'🎹 — (not connected)', midi_denied:'🎹 MIDI access denied',
     midi_nodevice:'🎹 No MIDI device', midi_match:'✓ match',
+    midi_internal:'🔈 Internal synth', midi_grab:'⤵ Load this chord',
+    sk_add:'+ Sketch', sk_title:'Sketch loop',
+    vl:(s,n)=>`${s} shared · ${n} new`,
     lg_low:'<i style="background:var(--low)"></i>Lower', lg_up:'<i style="background:var(--up)"></i>Upper', lg_both:'<i style="background:var(--both)"></i>Shared',
     tab_key:'By key', tab_build:'Build', tab_color:'By colour', tab_name:'By name', tab_upper:'By upper', tab_modulate:'Modulate', tab_mode:'By mode', tab_list:'Table',
     hint_key:'Voicings that fit the foundation key, grouped by scale degree. Click a chip to load it above.',
@@ -737,10 +771,18 @@ function drawKeyboard(root, lower, upper){
 // voice 0.45, like the sub-bass tool's soft sub-root); dense voicings are gently
 // normalised (×4/N) so total loudness stays in the sub-bass tool's range.
 let AC=null;
-function play(){ const mids=[...new Set(window._chordMidi||[])]; if(!mids.length) return;
+// when a MIDI output is selected, audition through it (e.g. IAC bus -> Ableton);
+// otherwise use the internal triangle-wave synth.
+function midiOutDev(){ return midiOuts.find(o=>o.id===midiOutId)||null; }
+function sendMidiChord(mids,dur){ const out=midiOutDev(); if(!out) return;
+  const now=window.performance.now();
+  mids.forEach(m=>{ out.send([0x90,m,100],now); out.send([0x80,m,0],now+dur*1000); });
+}
+function playMids(mids,dur=1.4){ mids=[...new Set(mids)].filter(m=>m>=0&&m<128); if(!mids.length) return;
+  if(midiOutDev()){ sendMidiChord(mids,dur); return; }
   AC=AC||new (window.AudioContext||window.webkitAudioContext)();
   if(AC.state==='suspended') AC.resume();
-  const t0=AC.currentTime, dur=1.4, peak=0.16;
+  const t0=AC.currentTime, peak=0.16;
   const master=AC.createGain();
   const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600;
   master.connect(lp); lp.connect(AC.destination);
@@ -751,7 +793,15 @@ function play(){ const mids=[...new Set(window._chordMidi||[])]; if(!mids.length
   mids.forEach(m=>{ const o=AC.createOscillator(); o.type='triangle'; o.frequency.value=440*Math.pow(2,(m-69)/12);
     const g=AC.createGain(); g.gain.value=(m===lowest?0.45:1)*ng; o.connect(g); g.connect(master); o.start(t0); o.stop(t0+dur+0.05); });
 }
+function play(){ playMids(window._chordMidi||[]); }
 $('play').addEventListener('click',play);
+// space = replay (ignored while a form control has focus)
+window.addEventListener('keydown',e=>{
+  if(e.code!=='Space') return;
+  const a=document.activeElement, tag=a&&a.tagName;
+  if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||tag==='BUTTON') return;
+  e.preventDefault(); play();
+});
 
 /* ---------- MIDI input (Web MIDI) ---------- */
 // Held keys are painted green on the hero keyboard, the played chord is named
@@ -760,13 +810,16 @@ $('play').addEventListener('click',play);
 // Devices are detected automatically on load; the dropdown defaults to "not
 // connected" and only the device the user picked (remembered) is listened to.
 let midiAccess=null, midiState='idle', midiInputs=[], midiCurId=null;   // idle|unsupported|denied|nodevice|on
+let midiOuts=[], midiOutId=null;
 const heldNotes=new Set();
+let lastHeld=[];   // snapshot of the last chord (>=3 notes) held on the MIDI keyboard
 function onMIDIMessage(e){
   const [s,d1,d2]=e.data, cmd=s&0xf0;
   if(cmd===0x90 && d2>0) heldNotes.add(d1);
   else if(cmd===0x80 || (cmd===0x90 && d2===0)) heldNotes.delete(d1);
   else if(cmd===0xb0 && (d1===123||d1===120)) heldNotes.clear();  // all-notes/sound-off
   else return;
+  if(heldNotes.size>=3) lastHeld=[...heldNotes].sort((a,b)=>a-b);
   paintHeld(); renderMidiChord();
 }
 // only the selected input is listened to; switching clears held notes.
@@ -788,7 +841,11 @@ function bindMidiInputs(){
   let pref=null; try{ pref=localStorage.getItem('polychord-midi-dev'); }catch(err){}
   const cur = midiInputs.find(i=>i.id===midiCurId) || (pref ? midiInputs.find(i=>i.id===pref) : null);
   selectMidiInput(cur?cur.id:null, false);
-  updateMidiUI(); renderMidiChord();
+  // outputs (for auditioning through the DAW); same persistence rules as inputs
+  midiOuts=[]; midiAccess.outputs.forEach(o=> midiOuts.push(o));
+  let opref=null; try{ opref=localStorage.getItem('polychord-midi-out'); }catch(err){}
+  if(!midiOuts.some(o=>o.id===midiOutId)) midiOutId = (opref && midiOuts.some(o=>o.id===opref)) ? opref : null;
+  updateMidiUI(); updateMidiOutUI(); renderMidiChord();
 }
 async function midiConnect(){
   if(!navigator.requestMIDIAccess){ midiState='unsupported'; updateMidiUI(); return; }
@@ -812,6 +869,20 @@ function updateMidiUI(){
   sel.value=midiCurId||'';
   sel.classList.toggle('off', !midiCurId);
 }
+function updateMidiOutUI(){
+  const sel=$('midiOutSel');
+  if(!midiOuts.length){ sel.hidden=true; midiOutId=null; return; }
+  sel.hidden=false; sel.innerHTML='';
+  const none=document.createElement('option'); none.value=''; none.textContent=t('midi_internal'); sel.appendChild(none);
+  midiOuts.forEach(o=>{ const op=document.createElement('option'); op.value=o.id; op.textContent='🔊 '+(o.name||'MIDI out'); sel.appendChild(op); });
+  sel.value=midiOutId||'';
+  sel.classList.toggle('off', !midiOutId);
+}
+$('midiOutSel').addEventListener('change',()=>{
+  midiOutId=$('midiOutSel').value||null;
+  try{ localStorage.setItem('polychord-midi-out', midiOutId||''); }catch(err){}
+  updateMidiOutUI();
+});
 function paintHeld(){
   document.querySelectorAll('#kbd .wk,#kbd .bk').forEach(el=> el.classList.toggle('held', heldNotes.has(+el.dataset.m)));
 }
@@ -823,6 +894,7 @@ function renderMidiChord(){
   $('midiChordName').textContent = mids.length ? chordNameOf(mids) : '—';
   const cur=new Set((window._chordMidi||[]).map(m=>m%12)), held=new Set(mids.map(m=>m%12));
   $('midiMatch').hidden = !(held.size>0 && held.size===cur.size && [...cur].every(p=>held.has(p)));
+  $('midiGrab').hidden = !lastHeld.length;
 }
 $('midiSel').addEventListener('change',()=>{ selectMidiInput($('midiSel').value, true); updateMidiUI(); renderMidiChord(); });
 
@@ -874,8 +946,27 @@ function chordNameOf(mids){
   return [...pcs].sort((a,b)=>((a-bassPc+12)%12)-((b-bassPc+12)%12)).map(keyDegName).join('·');
 }
 
+/* ---------- load the played chord into the hero (nearest voicing in this system) ---------- */
+function nearestVoicing(pcs,bassPc){
+  let best=null;
+  for(const r of pcs) for(const x of INDEX){ if(x.e.raw) continue;
+    const vs=voicingPcs(r,x.low,x.iv,x.upq);
+    let inter=0; vs.forEach(p=>{ if(pcs.has(p)) inter++; });
+    const miss=[...pcs].filter(p=>!vs.has(p)).length;
+    const score=inter*2-(vs.size-inter)-miss+(r===bassPc?0.5:0);   // exact match always wins
+    if(!best||score>best.score) best={score,r,x};
+  }
+  return best;
+}
+$('midiGrab').addEventListener('click',()=>{
+  if(!lastHeld.length) return;
+  const pcs=new Set(lastHeld.map(m=>((m%12)+12)%12)), bassPc=((lastHeld[0]%12)+12)%12;
+  const best=nearestVoicing(pcs,bassPc); if(!best) return;
+  loadVoicing(keyDegName(best.r), best.x.low, best.x.iv, best.x.upq);
+});
+
 /* ---------- shared: load a voicing into the hero ---------- */
-function loadVoicing(rootName, low, iv, upq){ st.rootName=rootName; st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); }
+function loadVoicing(rootName, low, iv, upq){ st.rootName=rootName; st.low=low; st.iv=iv; st.upq=upq; normalizeForDim(); render(); refreshTab(); }
 
 /* ---------- recipe rows (color/name results) ---------- */
 function renderRecipes(list, boxId){
@@ -1050,6 +1141,7 @@ function renderUpperFamily(){
   box.innerHTML='';
   const upName=ROOT_SHARP[st.upRoot]+(st.upQual==='min'?'m':'');
   const cnt=document.createElement('div'); cnt.className='count'; cnt.textContent=t('upper_count', upName, items.length, keyActive()); box.appendChild(cnt);
+  const curPcs=new Set((window._chordMidi||[]).map(m=>((m%12)+12)%12));   // for voice-leading badges
   items.forEach(x=>{
     const bass=noteFromName(keyDegName(x.bassPc));
     const up=buildTriad(bass, x.low==='dim'?'maj':x.upq, x.iv);
@@ -1057,9 +1149,12 @@ function renderUpperFamily(){
     const lowName=bass.name+(x.low==='maj'?'':x.low==='min'?'m':'dim');
     const ks=keyActive()?keySet():null; const ik = ks ? [...voicingPcs(x.bassPc,x.low,x.iv,x.upq)].every(p=>ks.has(p)) : null;
     const degs=(function(){ const seen=new Set(),u=[]; [...buildTriad(bass,(x.low==='dim'?'dim':x.low),null),...up].forEach(n=>{ if(!seen.has(n.name)){seen.add(n.name);u.push(n);} }); u.sort((a,b)=>((a.pc-bass.pc+12)%12)-((b.pc-bass.pc+12)%12)); return u.map(n=>degree(bass,n)).join(' '); })();
+    const vsx=voicingPcs(x.bassPc,x.low,x.iv,x.upq);
+    let sh=0; vsx.forEach(p=>{ if(curPcs.has(p)) sh++; });
+    const vl=curPcs.size?`<span class="vl">${t('vl',sh,vsx.size-sh)}</span>`:'';
     const c=document.createElement('div'); c.className='combo'+(ik===true?' inkey':ik===false?' outkey':''); c.dataset.low=x.low; c.dataset.iv=x.iv; c.dataset.upq=x.upq; c.dataset.root=bass.name;
     c.innerHTML=`<span class="cslash"><span class="u">${up[0].name}${upQ}</span><span style="color:var(--faint)">/</span><span class="l">${lowName}</span></span>`+
-      `<span class="arr">→</span><span class="csym">${x.e.raw?rawSym(x.e):bass.name+x.e.sym}</span>`+
+      `<span class="arr">→</span><span class="csym">${x.e.raw?rawSym(x.e):bass.name+x.e.sym}</span>${vl}`+
       `<span class="cnote">${x.e.warn?'⚠ ':''}${x.e.mode} · ${degs}</span>`;
     c.addEventListener('click',()=>{ loadVoicing(bass.name,x.low,x.iv,x.upq); });
     box.appendChild(c);
@@ -1219,6 +1314,90 @@ function applySubbass(k){
 window.addEventListener('storage', e=>{
   if(e.key==='subbass-key') applySubbass(readSubbassKey());
   if(e.key==='subbass-lang' && (e.newValue==='en'||e.newValue==='ja')) setLang(e.newValue);
+  if(e.key==='subbass-sketch') renderSketch();
+});
+
+/* ---------- shared sketch loop (localStorage "subbass-sketch", synced with the sub-bass tool) ---------- */
+const SK_KEY='subbass-sketch';
+function skLoad(){ try{ const v=JSON.parse(localStorage.getItem(SK_KEY)||'null'); if(v&&Array.isArray(v.slots)) return v; }catch(e){} return {v:1,slots:[],bpm:124}; }
+function skSave(sk){ try{ localStorage.setItem(SK_KEY, JSON.stringify(sk)); }catch(e){} renderSketch(); }
+function sketchAdd(label,mids){ const sk=skLoad(); if(sk.slots.length>=8) sk.slots.shift(); sk.slots.push({label,mids}); skSave(sk); }
+let skTimer=null, skIdx=0;
+function skStop(){ if(skTimer) clearTimeout(skTimer); skTimer=null; $('skPlay').textContent='▶';
+  document.querySelectorAll('.sk-slot.playing').forEach(el=>el.classList.remove('playing')); }
+function skTick(){
+  const sk=skLoad();
+  if(!sk.slots.length){ skStop(); return; }
+  skIdx%=sk.slots.length;
+  const beat=60/(sk.bpm||124);
+  document.querySelectorAll('.sk-slot').forEach(el=> el.classList.toggle('playing', +el.dataset.i===skIdx));
+  playMids(sk.slots[skIdx].mids, beat*2*0.95);   // one chord = 2 beats
+  skIdx++;
+  skTimer=setTimeout(skTick, beat*2*1000);
+}
+function renderSketch(){
+  const sk=skLoad(), bar=$('sketchBar');
+  bar.hidden=!sk.slots.length;
+  document.body.classList.toggle('has-sketch', !!sk.slots.length);
+  $('skBpm').value=sk.bpm||124;
+  const box=$('skSlots'); box.innerHTML='';
+  sk.slots.forEach((sl,i)=>{
+    const c=document.createElement('span'); c.className='sk-slot'; c.dataset.i=i;
+    const x=document.createElement('button'); x.className='sk-x'; x.textContent='×';
+    c.append(sl.label,x);
+    c.addEventListener('click',e=>{
+      if(e.target===x){ const s2=skLoad(); s2.slots.splice(i,1); skSave(s2); return; }
+      playMids(sl.mids,1.2);
+    });
+    box.appendChild(c);
+  });
+  if(!sk.slots.length) skStop();
+}
+// standard MIDI file (format 0, 480 TPQN): each slot = 2 beats
+function midiFile(slots,bpm){
+  const TPQ=480, dur=TPQ*2;
+  const vlq=n=>{ const out=[n&0x7f]; while(n>>=7) out.unshift((n&0x7f)|0x80); return out; };
+  const track=[];
+  const uspq=Math.round(60000000/(bpm||120));
+  track.push(0,0xFF,0x51,0x03,(uspq>>16)&255,(uspq>>8)&255,uspq&255);
+  let wrote=false;
+  for(const sl of slots){
+    const mids=[...new Set(sl.mids||[])].filter(m=>m>=0&&m<128);
+    if(!mids.length) continue;
+    wrote=true;
+    mids.forEach(m=> track.push(0,0x90,m,100));
+    mids.forEach((m,i)=> track.push(...(i===0?vlq(dur):[0]),0x80,m,0));
+  }
+  if(!wrote) return null;
+  track.push(0,0xFF,0x2F,0x00);
+  const len=track.length;
+  return new Uint8Array([0x4D,0x54,0x68,0x64,0,0,0,6,0,0,0,1,(TPQ>>8)&255,TPQ&255,
+    0x4D,0x54,0x72,0x6B,(len>>>24)&255,(len>>16)&255,(len>>8)&255,len&255,...track]);
+}
+function midiB64(u8){ let b=''; u8.forEach(x=>{ b+=String.fromCharCode(x); }); return btoa(b); }
+function curMidiName(){
+  const n=($('slash').textContent||'chord').replace(/#/g,'s').replace(/♭/g,'b').replace(/[^\w]+/g,'_').replace(/^_+|_+$/g,'');
+  return (n||'chord')+'.mid';
+}
+$('skAdd').addEventListener('click',()=>{ sketchAdd(($('slash').textContent||'?').trim(), [...new Set(window._chordMidi||[])]); });
+$('skPlay').addEventListener('click',()=>{ if(skTimer){ skStop(); return; } skIdx=0; $('skPlay').textContent='■'; skTick(); });
+$('skBpm').addEventListener('change',e=>{ const sk=skLoad(); sk.bpm=Math.min(220,Math.max(40,+e.target.value||124)); skSave(sk); });
+$('skClear').addEventListener('click',()=>{ skSave({v:1,slots:[],bpm:skLoad().bpm}); });
+$('skMidi').addEventListener('click',()=>{
+  const sk=skLoad(), u8=midiFile(sk.slots,sk.bpm); if(!u8) return;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([u8],{type:'audio/midi'})); a.download='polychord-sketch.mid'; a.click();
+});
+$('skMidi').addEventListener('dragstart',e=>{
+  const sk=skLoad(), u8=midiFile(sk.slots,sk.bpm); if(!u8) return;
+  e.dataTransfer.setData('DownloadURL','audio/midi:polychord-sketch.mid:data:audio/midi;base64,'+midiB64(u8));
+});
+$('midiExp').addEventListener('click',()=>{
+  const u8=midiFile([{mids:window._chordMidi||[]}], skLoad().bpm); if(!u8) return;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([u8],{type:'audio/midi'})); a.download=curMidiName(); a.click();
+});
+$('midiExp').addEventListener('dragstart',e=>{
+  const u8=midiFile([{mids:window._chordMidi||[]}], skLoad().bpm); if(!u8) return;
+  e.dataTransfer.setData('DownloadURL','audio/midi:'+curMidiName()+':data:audio/midi;base64,'+midiB64(u8));
 });
 
 /* ---------- language (synced with sub-bass tool) ---------- */
@@ -1228,7 +1407,7 @@ function applyI18n(){
   document.title=t('title');
   document.querySelectorAll('[data-i18n]').forEach(el=> el.textContent=t(el.dataset.i18n));
   document.querySelectorAll('[data-i18n-html]').forEach(el=> el.innerHTML=t(el.dataset.i18nHtml));
-  updateMidiUI();
+  updateMidiUI(); updateMidiOutUI();
 }
 function setLang(lang){ if(lang!=='en'&&lang!=='ja') return; LANG=lang;
   applyI18n(); applyIvTitles();
@@ -1286,6 +1465,7 @@ document.querySelectorAll('#langToggle button').forEach(b=> b.classList.toggle('
 relabelKeyTonic(); setLinked(subbassLinked); renderKeyView();
 render();
 setTab(st.tab);
+renderSketch();
 midiConnect();   // detect devices up front; listening starts only when one is picked (or remembered)
 </script>
 </body>
